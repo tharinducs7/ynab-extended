@@ -20,6 +20,7 @@ Route::get('/ynab-callback', fn() => inertia('YnabCallback'))->name('ynab.callba
 
 Route::post('/ynab/auth', [YNABAuthController::class, 'authenticate'])->name('ynab.auth');
 Route::post('/api/ynab/{budgetId}/age-of-money', [YNABController::class, 'fetchAgeOfMoney']);
+Route::post('/api/ynab/{budgetId}/scheduled-transactions', [YNABController::class, 'fetchScheduledTransactions']);
 
 // Route::middleware(['throttle:ynab'])->group(function () {
 //     Route::post('/ynab/auth', [YNABAuthController::class, 'authenticate'])->name('ynab.auth');

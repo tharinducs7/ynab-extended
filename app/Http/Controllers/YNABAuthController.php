@@ -86,13 +86,6 @@ class YNABAuthController extends Controller
                 $budgetsArrayWithAccounts = $budgetsData['data']['budgets'] ?? [];
                 $defaultBudget = $budgetsData['data']['default_budget'] ?? null;
 
-                Log::info('YNAB Budgets Response', ['response' => $budgetsData]);
-
-                if ($defaultBudget) {
-                    Log::info('Found Default Budget', ['id' => $defaultBudget['id'], 'name' => $defaultBudget['name']]);
-                } else {
-                    Log::warning('No Default Budget Found');
-                }
             } else {
                 Log::error('Failed to fetch budgets from YNAB', [
                     'status' => $budgetsResponse->status(),
