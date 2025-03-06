@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react"
 import axios from "axios"
-import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { CheckCircle, AlertCircle } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { useYNABContext } from "@/context/YNABContext"
 import { Skeleton } from "@/components/ui/skeleton"
+import TransactionCard from "../ui/transaction-card"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardFooter,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
+import { ScrollArea } from "../ui/scroll-area"
+import { formatBalance } from "@/lib/utils"
 
 interface Transaction {
     id: string
@@ -14,65 +22,8 @@ interface Transaction {
     date: string
     category_name: string
     status: "Paid" | "To Be Paid"
-    payee_logo?: string // Optional logo URL
-}
-
-function getInitials(name: string) {
-    const parts = name.split(" ")
-    return parts.map((p) => p[0]).join("").toUpperCase()
-}
-
-function TransactionCard({ transaction }: { transaction: Transaction }) {
-    const isPaid = transaction.status === "Paid"
-
-    return (
-        <Card className="w-full border border-border shadow-sm overflow-hidden">
-            <CardContent className="flex gap-4 p-4 items-center">
-                <div className="w-12 h-12 flex items-center justify-center bg-muted rounded-full text-primary font-bold text-lg shrink-0">
-                    {transaction.payee_logo ? (
-                        <img
-                            src={transaction.payee_logo}
-                            alt={transaction.payee_name}
-                            className="w-full h-full rounded-full object-cover"
-                        />
-                    ) : (
-                        getInitials(transaction.payee_name)
-                    )}
-                </div>
-
-                <div className="flex-1 space-y-1">
-                    <div className="flex justify-between items-center">
-                        <span className="font-semibold text-sm truncate">{transaction.payee_name}</span>
-                        {isPaid ? (
-                            <CheckCircle className="h-5 w-5 text-green-600" />
-                        ) : (
-                            <AlertCircle className="h-5 w-5 text-yellow-500" />
-                        )}
-                    </div>
-                    <div className="text-sm text-muted-foreground">
-                        {new Date(transaction.date).toLocaleDateString()}
-                    </div>
-                    <div className="flex justify-between items-center">
-                        <span className="text-sm font-medium">{transaction.category_name}</span>
-                        <span className={cn(
-                            "text-sm font-semibold",
-                            isPaid ? "text-green-600" : "text-yellow-600"
-                        )}>
-                            LKR {transaction.amount.toLocaleString()}
-                        </span>
-                    </div>
-                    <Badge
-                        variant={isPaid ? "outline" : "secondary"}
-                        className={cn(
-                            isPaid ? "border-green-500 text-green-600" : "border-yellow-500 text-yellow-600"
-                        )}
-                    >
-                        {transaction.status}
-                    </Badge>
-                </div>
-            </CardContent>
-        </Card>
-    )
+    payee_logo?: string
+    memo: string
 }
 
 export function ScheduledTransactionWidget() {
@@ -113,27 +64,79 @@ export function ScheduledTransactionWidget() {
             .finally(() => setLoading(false))
     }
 
-    return (
-        <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Scheduled Transactions</h3>
+    const paidTransactions = transactions
+        .filter(txn => txn.status === "Paid")
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-            {loading ? (
-                <div className="space-y-2">
-                    {[1, 2, 3].map((_, idx) => (
-                        <Skeleton key={idx} className="w-full h-[80px] rounded-lg" />
-                    ))}
-                </div>
-            ) : (
-                <>
-                    {transactions.length === 0 ? (
-                        <p className="text-muted-foreground text-sm">No scheduled transactions found.</p>
-                    ) : (
-                        transactions.map((txn) => (
-                            <TransactionCard key={txn.id} transaction={txn} />
-                        ))
-                    )}
-                </>
-            )}
-        </div>
+    const toBePaidTransactions = transactions.filter(txn => txn.status === "To Be Paid")
+
+    // Utility to format amount with color
+    const getFormattedAmount = (amount: number) => {
+        const isIncome = amount > 0
+        return (
+            <span className={isIncome ? "text-green-600" : "text-red-600"}>
+                {formatBalance(amount, currentBudget?.currency)}
+            </span>
+        )
+    }
+
+    return (
+        <Card className="h-[650px]">
+            <CardHeader>
+                <CardTitle>Scheduled Transactions</CardTitle>
+                <CardDescription>
+                    Overview of all your scheduled transactions.
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                {loading ? (
+                    <div className="space-y-2">
+                        {[1, 2, 3].map((_, idx) => (
+                            <Skeleton key={idx} className="w-full h-[80px] rounded-lg" />
+                        ))}
+                    </div>
+                ) : (
+                    <Tabs defaultValue="to-be-paid" className="w-full">
+                        <TabsList className="w-full grid grid-cols-2">
+                            <TabsTrigger value="paid">Paid</TabsTrigger>
+                            <TabsTrigger value="to-be-paid">To Be Paid</TabsTrigger>
+                        </TabsList>
+
+                        <TabsContent value="paid">
+                            {paidTransactions.length === 0 ? (
+                                <p className="text-muted-foreground text-sm">No paid transactions found.</p>
+                            ) : (
+                                <ScrollArea className="h-[510px]">
+                                    {paidTransactions.map((txn) => (
+                                        <TransactionCard key={txn.id} transaction={{
+                                            ...txn,
+                                            amountDisplay: getFormattedAmount(txn.amount)
+                                        }} />
+                                    ))}
+                                </ScrollArea>
+                            )}
+                        </TabsContent>
+
+                        <TabsContent value="to-be-paid">
+                            {toBePaidTransactions.length === 0 ? (
+                                <p className="text-muted-foreground text-sm">No transactions to be paid found.</p>
+                            ) : (
+                                <ScrollArea className="h-[510px]">
+                                    {toBePaidTransactions.map((txn) => (
+                                        <TransactionCard key={txn.id} transaction={{
+                                            ...txn,
+                                            amountDisplay: getFormattedAmount(txn.amount)
+                                        }} />
+                                    ))}
+                                </ScrollArea>
+                            )}
+                        </TabsContent>
+                    </Tabs>
+                )}
+            </CardContent>
+            <CardFooter className="flex-col items-start gap-2 text-sm">
+                {/* You can add summary information here if needed */}
+            </CardFooter>
+        </Card>
     )
 }
