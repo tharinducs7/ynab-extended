@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use Illuminate\Support\Facades\Session;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -45,6 +46,8 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
+            'budgetsArrayWithAccounts' => fn () => Session::get('budgetsArrayWithAccounts', []),
+            'defaultBudgetId' => fn () => Session::get('defaultBudgetId', null),
         ];
     }
 }

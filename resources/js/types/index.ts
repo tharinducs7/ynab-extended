@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { LucideIcon } from 'lucide-react';
 
 export interface Auth {
@@ -26,6 +27,8 @@ export interface SharedData {
     quote: { message: string; author: string };
     auth: Auth;
     [key: string]: unknown;
+    budgetsArrayWithAccounts: any[];
+    defaultBudgetId: string | null;
 }
 
 export interface User {

@@ -20,7 +20,8 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
-        'password',
+        'ynab_user_id',
+        'ynab_access_token',
     ];
 
     /**
