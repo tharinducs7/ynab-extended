@@ -15,6 +15,7 @@ import { useYNABContext } from "@/context/YNABContext";
 export function AppBudgets() {
     const { budgetsArrayWithAccounts } = usePage<SharedData>().props;
     const { currentBudget, setCurrentBudget } = useYNABContext();
+console.log(currentBudget);
 
     const handleBudgetChange = (budgetId: string) => {
         const selectedBudget = budgetsArrayWithAccounts.find(b => b.id === budgetId);
