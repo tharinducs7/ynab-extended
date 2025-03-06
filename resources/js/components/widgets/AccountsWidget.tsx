@@ -92,10 +92,12 @@ export function AccountsWidget() {
     }).format(totalBalance / 1000) + " LKR"
 
     return (
-        <Card>
+        <Card className="h-[450px]">
             <CardHeader>
                 <CardTitle>Accounts</CardTitle>
-                <CardDescription>Tracking Age of Money over the Last 6 Months</CardDescription>
+                <CardDescription>
+                    Overview of all your accounts, with current balances and details.
+                </CardDescription>
             </CardHeader>
             <CardContent>
                 {accountTypes.length > 0 && selectedTab && (

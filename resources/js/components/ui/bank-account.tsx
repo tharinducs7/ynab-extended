@@ -31,7 +31,7 @@ const BankAccount: React.FC<BankAccountProps> = ({ account }) => {
         >
             {/* Left Section - Avatar & Name */}
             <div className="flex items-center gap-3">
-                <Avatar className="size-8">
+                <Avatar className="size-8 rounded-lg">
                     <AvatarImage src={avatarUrl} alt={account.name} />
                     <AvatarFallback>
                         {account.name.charAt(0).toUpperCase()}

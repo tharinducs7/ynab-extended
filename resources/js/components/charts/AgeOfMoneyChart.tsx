@@ -71,7 +71,7 @@ export function AgeOfMoneyChart() {
     }, [currentBudget]);
 
     return (
-        <Card>
+        <Card className="h-[450px]">
             <CardHeader>
                 <CardTitle>Age of Money</CardTitle>
                 <CardDescription>Tracking Age of Money over the Last 6 Months</CardDescription>
