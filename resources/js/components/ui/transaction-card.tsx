@@ -23,8 +23,8 @@ interface TransactionCardProps {
 }
 
 function getInitials(name: string) {
-    const parts = name.split(' ')
-    return parts.map((p) => p[0]).join('').toUpperCase()
+    const parts = name?.split(' ')
+    return parts?.map((p) => p[0])?.join('')?.toUpperCase()
 }
 
 const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {

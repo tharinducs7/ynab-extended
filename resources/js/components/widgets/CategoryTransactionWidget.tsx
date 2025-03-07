@@ -109,6 +109,10 @@ export function CategoryTransactionWidget() {
         const groupArray = Object.entries(groups).map(([key, group]) => ({
             key,
             ...group,
+            // Sort transactions within each group by date descending
+            transactions: group.transactions.sort((a, b) =>
+                new Date(b.date).getTime() - new Date(a.date).getTime()
+            ),
         }))
 
         groupArray.sort((a, b) => {
@@ -120,6 +124,7 @@ export function CategoryTransactionWidget() {
 
         return groupArray
     }
+
 
     const groups = groupTransactionsByMonth(transactions)
     const overallTotal = transactions.reduce((acc, txn) => acc + txn.amount, 0)
