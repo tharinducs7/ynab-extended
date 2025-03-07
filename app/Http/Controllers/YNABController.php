@@ -236,4 +236,29 @@ class YNABController extends Controller
             ], 500);
         }
     }
+
+    public function fetchCategories(Request $request, $budgetId)
+    {
+        $token = $request->input('token');
+
+        if (!$token) {
+            return response()->json(['error' => 'YNAB token is required'], 400);
+        }
+
+        $response = Http::withToken($token)
+            ->get("https://api.ynab.com/v1/budgets/{$budgetId}/categories");
+
+        if ($response->failed()) {
+            \Log::error('YNAB API Error', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            return response()->json(['error' => 'Failed to fetch YNAB categories'], 500);
+        }
+
+        $data = $response->json();
+
+        return response()->json($data);
+    }
+
 }

@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { AgeOfMoneyChart } from '@/components/charts/AgeOfMoneyChart';
 import BalanceChart from '@/components/charts/BalanceChart';
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import { AccountsWidget } from '@/components/widgets/AccountsWidget';
 import { ScheduledTransactionWidget } from '@/components/widgets/ScheduledTransactionWidget';
 import AppLayout from '@/layouts/app-layout';

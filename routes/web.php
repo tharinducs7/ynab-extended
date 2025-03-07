@@ -21,6 +21,8 @@ Route::get('/ynab-callback', fn() => inertia('YnabCallback'))->name('ynab.callba
 Route::post('/ynab/auth', [YNABAuthController::class, 'authenticate'])->name('ynab.auth');
 Route::post('/api/ynab/{budgetId}/age-of-money', [YNABController::class, 'fetchAgeOfMoney']);
 Route::post('/api/ynab/{budgetId}/scheduled-transactions', [YNABController::class, 'fetchScheduledTransactions']);
+Route::post('/api/ynab/{budgetId}/fetch-categories', [YNABController::class, 'fetchCategories']);
+
 
 // Route::middleware(['throttle:ynab'])->group(function () {
 //     Route::post('/ynab/auth', [YNABAuthController::class, 'authenticate'])->name('ynab.auth');
@@ -29,6 +31,9 @@ Route::post('/api/ynab/{budgetId}/scheduled-transactions', [YNABController::clas
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', fn() => inertia('dashboard'))->name('dashboard');
+    Route::get('/category-overview', fn() => inertia('categoryOverview'))->name('category-overview');
+
+
 });
 
 require __DIR__.'/settings.php';
