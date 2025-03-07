@@ -261,4 +261,118 @@ class YNABController extends Controller
         return response()->json($data);
     }
 
+    public function fetchCategoryTransactions(Request $request, $budgetId, $categoryId)
+    {
+        $token = $request->input('token');
+
+        if (!$token) {
+            return response()->json(['error' => 'YNAB token is required'], 400);
+        }
+
+        $response = Http::withToken($token)
+            ->get("https://api.ynab.com/v1/budgets/{$budgetId}/categories/{$categoryId}/transactions");
+
+        if ($response->failed()) {
+            \Log::error('YNAB API Error', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
+            return response()->json(['error' => 'Failed to fetch YNAB category transactions'], 500);
+        }
+
+        $data = $response->json();
+        $transactions = $data['data']['transactions'];
+
+        // Define period: from 13 months ago (starting at the beginning of that month)
+        // until the end of the current month.
+        $now = \Carbon\Carbon::now();
+        $endMonth = $now->copy()->endOfMonth();
+        $startMonth = $now->copy()->subMonths(13)->startOfMonth();
+
+        // --------------------------
+        // 1. Compute payee chart data for a pie chart:
+        //    - Filter transactions within the period.
+        //    - Group transactions by payee and sum spending (using absolute values).
+        //    - Sort descending and pick the top 5 payees.
+        //    - Build an array for the pie chart and a legend array.
+        // --------------------------
+        $filteredTransactions = [];
+        foreach ($transactions as $txn) {
+            $txnDate = \Carbon\Carbon::parse($txn['date']);
+            if ($txnDate->between($startMonth, $endMonth, true)) {
+                $filteredTransactions[] = $txn;
+            }
+        }
+
+        $payeeChartData = [];
+        foreach ($filteredTransactions as $txn) {
+            $payee = $txn['payee_name'] ?? 'Unknown';
+            // Convert from minor units to major units and use absolute value.
+            $amount = abs($txn['amount'] / 1000.0);
+
+            if (isset($payeeChartData[$payee])) {
+                $payeeChartData[$payee] += $amount;
+            } else {
+                $payeeChartData[$payee] = $amount;
+            }
+        }
+
+        // Sort by spending (highest first) and take top 5.
+        arsort($payeeChartData);
+        $topPayees = array_slice($payeeChartData, 0, 5, true);
+
+        $payeeChartDataArr = [];
+        $legend = [];
+        foreach ($topPayees as $payee => $activity) {
+            $payeeChartDataArr[] = [
+                'payee'    => $payee,
+                'activity' => $activity,
+            ];
+            $legend[] = $payee;
+        }
+
+        // --------------------------
+        // 2. Compute monthly spending chart data:
+        //    - Initialize a month-by-month array for the period.
+        //    - Sum raw amounts for each month (using raw values so that income offsets spending).
+        //    - Post-process: if the net is negative (net expense), use its absolute value; if positive, set spending to 0.
+        // --------------------------
+        $monthlyChartDataAssoc = [];
+        $period = new \DatePeriod($startMonth, new \DateInterval('P1M'), $endMonth->copy()->addMonth()->startOfMonth());
+        foreach ($period as $dt) {
+            $label = $dt->format('y M'); // e.g. "24 Jan"
+            $monthlyChartDataAssoc[$dt->format('Y-m')] = [
+                'month'    => $label,
+                'spending' => 0,
+            ];
+        }
+
+        foreach ($transactions as $txn) {
+            $txnDate = \Carbon\Carbon::parse($txn['date']);
+            if ($txnDate->between($startMonth, $endMonth, true)) {
+                $monthKey = $txnDate->format('Y-m');
+                $amount = $txn['amount'] / 1000.0; // raw value: negative for expenses, positive for income
+                if (isset($monthlyChartDataAssoc[$monthKey])) {
+                    $monthlyChartDataAssoc[$monthKey]['spending'] += $amount;
+                }
+            }
+        }
+
+        foreach ($monthlyChartDataAssoc as $key => $data) {
+            if ($data['spending'] < 0) {
+                $monthlyChartDataAssoc[$key]['spending'] = abs($data['spending']);
+            } else {
+                $monthlyChartDataAssoc[$key]['spending'] = 0;
+            }
+        }
+        $monthlyChartDataArr = array_values($monthlyChartDataAssoc);
+
+        return response()->json([
+            'transactions'     => $transactions,
+            'payeeChartData'   => $payeeChartDataArr,
+            'legend'           => $legend,
+            'monthlyChartData' => $monthlyChartDataArr,
+        ]);
+    }
+
 }

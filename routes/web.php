@@ -22,7 +22,7 @@ Route::post('/ynab/auth', [YNABAuthController::class, 'authenticate'])->name('yn
 Route::post('/api/ynab/{budgetId}/age-of-money', [YNABController::class, 'fetchAgeOfMoney']);
 Route::post('/api/ynab/{budgetId}/scheduled-transactions', [YNABController::class, 'fetchScheduledTransactions']);
 Route::post('/api/ynab/{budgetId}/fetch-categories', [YNABController::class, 'fetchCategories']);
-
+Route::post('/api/ynab/{budgetId}/categories/{categoryId}/transactions', [YNABController::class, 'fetchCategoryTransactions']);
 
 // Route::middleware(['throttle:ynab'])->group(function () {
 //     Route::post('/ynab/auth', [YNABAuthController::class, 'authenticate'])->name('ynab.auth');

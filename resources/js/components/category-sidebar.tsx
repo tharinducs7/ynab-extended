@@ -20,15 +20,23 @@ import {
 import { useYNABContext } from "@/context/YNABContext"
 
 export function CategoryCombobox() {
-  const { currentBudget } = useYNABContext()
+  const { currentBudget,
+          selectedCategoryGroupId,
+          setSelectedCategoryGroupId,
+          selectedCategorySubId,
+          setSelectedCategorySubId } = useYNABContext()
   const [categoryGroups, setCategoryGroups] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [selectedGroup, setSelectedGroup] = useState<any>(null)
-  const [selectedSubCategory, setSelectedSubCategory] = useState<any>("all")
 
   // Control Popover open state for each combobox
   const [groupOpen, setGroupOpen] = useState(false)
   const [subOpen, setSubOpen] = useState(false)
+
+  // Compute selected group and subcategory objects based on stored IDs.
+  const selectedGroup = categoryGroups.find((group) => group.id === selectedCategoryGroupId)
+  const selectedSubCategory = selectedGroup && selectedCategorySubId
+    ? selectedGroup.categories.find((cat: any) => cat.id === selectedCategorySubId)
+    : "all"
 
   // Fetch category groups when currentBudget changes
   useEffect(() => {
@@ -90,9 +98,9 @@ export function CategoryCombobox() {
                   <CommandItem
                     key={group.id}
                     onSelect={() => {
-                      setSelectedGroup(group)
+                      setSelectedCategoryGroupId(group.id)
                       // Reset subcategory selection when a new group is selected
-                      setSelectedSubCategory("all")
+                      setSelectedCategorySubId(null)
                       setGroupOpen(false)
                     }}
                   >
@@ -118,9 +126,7 @@ export function CategoryCombobox() {
               aria-expanded={subOpen}
               className="w-full md:w-[300px] justify-between"
             >
-              {selectedSubCategory === "all"
-                ? "All"
-                : selectedSubCategory.name}
+              {selectedSubCategory === "all" ? "All" : selectedSubCategory.name}
               <ChevronsUpDown className="opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -132,7 +138,7 @@ export function CategoryCombobox() {
                 <CommandGroup>
                   <CommandItem
                     onSelect={() => {
-                      setSelectedSubCategory("all")
+                      setSelectedCategorySubId(null)
                       setSubOpen(false)
                     }}
                   >
@@ -144,13 +150,13 @@ export function CategoryCombobox() {
                       <CommandItem
                         key={cat.id}
                         onSelect={() => {
-                          setSelectedSubCategory(cat)
+                          setSelectedCategorySubId(cat.id)
                           setSubOpen(false)
                         }}
                       >
                         {cat.name}
                         {selectedSubCategory !== "all" &&
-                          selectedSubCategory.id === cat.id && (
+                          selectedCategorySubId === cat.id && (
                             <Check className="ml-auto" />
                           )}
                       </CommandItem>

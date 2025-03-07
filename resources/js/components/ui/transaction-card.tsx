@@ -9,7 +9,7 @@ interface Transaction {
     amount: number
     date: string
     category_name: string
-    status: 'Paid' | 'To Be Paid'
+    status?: 'Paid' | 'To Be Paid'
     payee_logo?: string
     memo: string
 }
@@ -54,8 +54,8 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction }) => {
                         )}
                     </div>
 
-                    <div className="text-xs text-muted-foreground">
-                        {new Date(transaction.date).toLocaleDateString()} |  {transaction.category_name} |  {transaction.memo}
+                    <div className="w-[400px] truncate text-xs text-muted-foreground">
+                        {new Date(transaction.date).toLocaleDateString()} | {transaction.category_name} | {transaction.memo}
                     </div>
                 </div>
             </div>
