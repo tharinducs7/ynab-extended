@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { usePage } from '@inertiajs/react';
-import { SharedData } from '@/types'; // Make sure this matches your types
+import { SharedData } from '@/types'; // Ensure this matches your types
 
 interface Budget {
   id: string;
@@ -17,10 +17,12 @@ interface YNABContextType {
   setSelectedCategoryGroupId: (id: string | null) => void;
   selectedCategorySubId: string | null;
   setSelectedCategorySubId: (id: string | null) => void;
-  setPayeeChartData: (data: any) => void;
   payeeChartData: any;
-  setMonthlyChartData: (data: any) => void;
+  setPayeeChartData: (data: any) => void;
   monthlyChartData: any;
+  setMonthlyChartData: (data: any) => void;
+  selectedDate: Date;
+  setSelectedDate: (date: Date) => void;
 }
 
 const YNABContext = createContext<YNABContextType | undefined>(undefined);
@@ -41,6 +43,7 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [selectedCategorySubId, setSelectedCategorySubId] = useState<string | null>(null);
   const [payeeChartData, setPayeeChartData] = useState<any | null>(null);
   const [monthlyChartData, setMonthlyChartData] = useState<any | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   useEffect(() => {
     if (!currentBudget) {
@@ -65,10 +68,12 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setSelectedCategoryGroupId,
         selectedCategorySubId,
         setSelectedCategorySubId,
-        setPayeeChartData,
         payeeChartData,
+        setPayeeChartData,
         monthlyChartData,
-        setMonthlyChartData
+        setMonthlyChartData,
+        selectedDate,
+        setSelectedDate,
       }}
     >
       {children}

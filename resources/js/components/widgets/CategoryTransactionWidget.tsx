@@ -28,7 +28,7 @@ interface Transaction {
 }
 
 export function CategoryTransactionWidget() {
-    const { currentBudget, selectedCategorySubId, setPayeeChartData, setMonthlyChartData } = useYNABContext()
+    const { currentBudget, selectedCategorySubId, setPayeeChartData, setMonthlyChartData, selectedDate } = useYNABContext()
     const [transactions, setTransactions] = useState<Transaction[]>([])
     const [loading, setLoading] = useState(true)
 

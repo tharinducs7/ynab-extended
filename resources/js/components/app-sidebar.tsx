@@ -17,6 +17,11 @@ const mainNavItems: NavItem[] = [
         title: 'Category Overview',
         url: '/category-overview',
         icon: LayoutGrid,
+    },
+    {
+        title: 'Daily Stats',
+        url: '/daily-stats',
+        icon: LayoutGrid,
     }
 ];
 
