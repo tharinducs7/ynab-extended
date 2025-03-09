@@ -18,6 +18,7 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import noDataImg from "../../../../public/no_data.jpg";
 
 // Define income and expense color scales (from lowest to highest intensity)
 const incomeColors = ["#86efac", "#4ade80", "#22c55e", "#16a34a", "#15803d"]
@@ -103,17 +104,28 @@ export function CategoryBarChart({ transactions }: CategoryBarChartProps) {
             </CardHeader>
             <CardContent>
                 <ChartContainer config={dynamicChartConfig}>
-                    <BarChart data={data} width={300} height={250}>
-                        <CartesianGrid vertical={false} strokeDasharray="3 3" />
-                        <XAxis dataKey="category" tickLine={false} />
-                        <YAxis />
-                        <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
-                        <Bar dataKey="total" radius={[8, 8, 0, 0]}>
-                            {data.map((entry, index) => (
-                                <Cell key={`cell-${index}`} fill={colorScale[index % colorScale.length]} />
-                            ))}
-                        </Bar>
-                    </BarChart>
+                    {data.length === 0 ? (
+                        <div className="flex items-center justify-center h-full">
+                            {/* Replace '/no-data.png' with the correct path to your no-data image */}
+                            <img
+                                src={noDataImg}
+                                alt="No Data Available"
+                                className="w-full max-w-[300px] aspect-square object-contain"
+                            />
+                        </div>
+                    ) : (
+                        <BarChart data={data} width={300} height={250}>
+                            <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                            <XAxis dataKey="category" tickLine={false} />
+                            <YAxis />
+                            <ChartTooltip content={<ChartTooltipContent />} cursor={false} />
+                            <Bar dataKey="total" radius={[8, 8, 0, 0]}>
+                                {data.map((entry, index) => (
+                                    <Cell key={`cell-${index}`} fill={colorScale[index % colorScale.length]} />
+                                ))}
+                            </Bar>
+                        </BarChart>
+                    )}
                 </ChartContainer>
             </CardContent>
             <CardFooter>

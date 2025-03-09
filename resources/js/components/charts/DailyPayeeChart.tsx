@@ -27,7 +27,7 @@ import {
 import { Avatar, AvatarImage } from "../ui/avatar"
 import { formatPayeeForUrl } from "@/lib/utils"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import noDataImg from "../../../../public/no_data.png";
+import noDataImg from "../../../../public/no_data.jpg";
 // Define income and expense color scales (from lowest to highest intensity)
 const incomeColors = ["#86efac", "#4ade80", "#22c55e", "#16a34a", "#15803d"]
 const expenseColors = ["#f87171", "#ef4444", "#dc2626", "#dc2626", "#b91c1c"]
