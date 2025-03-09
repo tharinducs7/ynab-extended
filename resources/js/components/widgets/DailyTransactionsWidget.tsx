@@ -9,9 +9,10 @@ import { DailyPayeeChart } from "../charts/DailyPayeeChart"
 import { CategoryBarChart } from "../charts/DailyCategoryChart"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { formatBalance } from "@/lib/utils"
 
 export function DailyTransactionsWidget({ transactions }: { transactions: any[] }) {
-    const { selectedDate } = useYNABContext()
+    const { selectedDate, currentBudget } = useYNABContext()
 
     // Filter transactions by selected date (ignoring time) and adjust amount
     const filteredTransactions = React.useMemo(() => {
@@ -85,7 +86,12 @@ export function DailyTransactionsWidget({ transactions }: { transactions: any[] 
                             <CardTitle>
                                 Transactions {selectedDate.toDateString()}
                             </CardTitle>
-                            <Tabs value={activeTab} onValueChange={(val) => setActiveTab(val as "income" | "expense" | "transfers")}>
+                            <Tabs
+                                value={activeTab}
+                                onValueChange={(val) =>
+                                    setActiveTab(val as "income" | "expense" | "transfers")
+                                }
+                            >
                                 <TabsList>
                                     <TabsTrigger value="income">Income</TabsTrigger>
                                     <TabsTrigger value="expense">Expense</TabsTrigger>
@@ -95,19 +101,39 @@ export function DailyTransactionsWidget({ transactions }: { transactions: any[] 
                         </CardHeader>
                         <CardContent className="h-[310px]">
                             {transactionsForTab.length === 0 ? (
-                                <p className="text-muted-foreground">No transactions for selected date.</p>
+                                <p className="text-muted-foreground">
+                                    No transactions for selected date.
+                                </p>
                             ) : (
                                 <ScrollArea className="h-full">
-                                    {Object.entries(groupedTransactions).map(([groupName, txns]) => (
-                                        <div key={groupName} className="mb-4">
-                                            <div className="font-semibold mb-2">{groupName}</div>
-                                            <div className="space-y-2">
-                                                {txns.map((txn) => (
-                                                    <TransactionCard key={txn.id} transaction={txn} minimalCard={true} />
-                                                ))}
+                                    {Object.entries(groupedTransactions).map(([groupName, txns]) => {
+                                        // Calculate the group's total sum
+                                        const totalSum = txns.reduce(
+                                            (acc, txn) => acc + txn.amount,
+                                            0
+                                        )
+                                        return (
+                                            <div key={groupName} className="mb-4">
+                                                <div className="flex justify-between font-semibold mb-2 text-sm">
+                                                    <span>{groupName}</span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {txns.map((txn) => (
+                                                        <TransactionCard
+                                                            key={txn.id}
+                                                            transaction={txn}
+                                                            minimalCard={true}
+                                                        />
+                                                    ))}
+                                                </div>
+                                                <div className="flex justify-end font-semibold mb-2 text-sm">
+                                                    {txns.length > 1 && (
+                                                        <span>{formatBalance(totalSum, currentBudget?.currency)}</span>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        )
+                                    })}
                                 </ScrollArea>
                             )}
                         </CardContent>

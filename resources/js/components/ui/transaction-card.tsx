@@ -38,7 +38,7 @@ function getInitials(name: string) {
 
 const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, minimalCard = false }) => {
     const isPaid = transaction.status === 'Paid'
-    const classNames = minimalCard ? 'relative my-1 p-1 w-full rounded-lg border text-sm flex items-center justify-between bg-background text-foreground' : 'relative w-full rounded-lg border my-2 px-4 py-3 text-sm flex items-center justify-between bg-background text-foreground';
+    const classNames = minimalCard ? 'relative my-1 p-2 w-full rounded-lg border text-sm flex items-center justify-between bg-background text-foreground' : 'relative w-full rounded-lg border my-2 px-4 py-3 text-sm flex items-center justify-between bg-background text-foreground';
     const avatarClassName = minimalCard ? 'size-6 rounded-lg' : 'size-6 rounded-lg';
 
     return (
@@ -87,7 +87,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, minimalC
                                                     transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
                                                 )}
                                             >
-                                                {transaction.amountDisplay ?? `LKR ${transaction.amount.toFixed(2)}`}
+                                                {transaction.amountDisplay ?? `${transaction.amount.toFixed(2)} LKR`}
                                             </span>
                                         </div>
                                     </DialogTitle>
@@ -116,7 +116,7 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, minimalC
                         transaction.amount > 0 ? 'text-green-600' : 'text-red-600'
                     )}
                 >
-                    {transaction.amountDisplay ?? `LKR ${transaction.amount.toFixed(2)}`}
+                    {transaction.amountDisplay ?? `${transaction.amount.toFixed(2)} LKR`}
                 </span>
             </div>
         </div>
