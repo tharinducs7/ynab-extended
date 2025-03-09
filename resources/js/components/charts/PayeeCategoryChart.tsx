@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import * as React from "react"
@@ -42,6 +43,7 @@ export function PayeeCategoryChart() {
     const { payeeChartData, selectedCategoryGroupId } = useYNABContext()
     const [activeIndex, setActiveIndex] = React.useState(-1)
     const data = payeeChartData || []
+console.log(payeeChartData, "payeeChartData");
 
     // Generate dynamic chart config based on payee data.
     const dynamicChartConfig = React.useMemo(() => {
