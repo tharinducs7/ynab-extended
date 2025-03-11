@@ -4,8 +4,8 @@ import axios from "axios"
 import { useYNABContext } from "@/context/YNABContext"
 import { Skeleton } from "@/components/ui/skeleton"
 import { format, startOfMonth } from "date-fns"
-import { DailyExpenseIncome } from "@/components/charts/DailyExpenseIncome"
 import { DailyTransactionsWidget } from "@/components/widgets/DailyTransactionsWidget"
+import { DailyChartv2 } from "@/components/charts/DailyChartv2"
 
 interface DailyAnalyticsData {
   transactions: any[]
@@ -69,7 +69,7 @@ export function DailyStatContainer() {
     return <p>No data available.</p>
   }
 
-  console.log(data, "data")
+  console.log(data.chart_data, "data")
 
   return (
     <div className="p-4 border rounded-lg">
@@ -83,7 +83,8 @@ export function DailyStatContainer() {
         </div>
       </div>
       <div className="grid auto-rows-min gap-4 md:grid-cols-1 mt-2">
-        <DailyExpenseIncome chartData={data.chart_data} />
+        {/* <DailyExpenseIncome chartData={data.chart_data} /> */}
+        <DailyChartv2 chartData={data.chart_data} />
       </div>
     </div>
   )

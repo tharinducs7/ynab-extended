@@ -20,11 +20,13 @@ import {
 import { useYNABContext } from "@/context/YNABContext"
 
 export function CategoryCombobox() {
-  const { currentBudget,
-          selectedCategoryGroupId,
-          setSelectedCategoryGroupId,
-          selectedCategorySubId,
-          setSelectedCategorySubId } = useYNABContext()
+  const {
+    currentBudget,
+    selectedCategoryGroupId,
+    setSelectedCategoryGroupId,
+    selectedCategorySubId,
+    setSelectedCategorySubId,
+  } = useYNABContext()
   const [categoryGroups, setCategoryGroups] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -32,11 +34,34 @@ export function CategoryCombobox() {
   const [groupOpen, setGroupOpen] = useState(false)
   const [subOpen, setSubOpen] = useState(false)
 
+  // On mount, check session storage for stored IDs and set defaults if not available.
+  useEffect(() => {
+    const storedGroupId = sessionStorage.getItem("selectedCategoryGroupId")
+    const storedSubId = sessionStorage.getItem("selectedCategorySubId")
+
+    if (storedGroupId) {
+      setSelectedCategoryGroupId(storedGroupId)
+    } else {
+      setSelectedCategoryGroupId("c48a0ad1-3ce2-4ace-afd3-9640ec95a41c")
+      sessionStorage.setItem("selectedCategoryGroupId", "c48a0ad1-3ce2-4ace-afd3-9640ec95a41c")
+    }
+
+    if (storedSubId) {
+      setSelectedCategorySubId(storedSubId)
+    } else {
+      setSelectedCategorySubId("c84a5aae-80b8-4120-b483-30ba823c563c")
+      sessionStorage.setItem("selectedCategorySubId", "c84a5aae-80b8-4120-b483-30ba823c563c")
+    }
+  }, [setSelectedCategoryGroupId, setSelectedCategorySubId])
+
   // Compute selected group and subcategory objects based on stored IDs.
-  const selectedGroup = categoryGroups.find((group) => group.id === selectedCategoryGroupId)
-  const selectedSubCategory = selectedGroup && selectedCategorySubId
-    ? selectedGroup.categories.find((cat: any) => cat.id === selectedCategorySubId)
-    : "all"
+  const selectedGroup = categoryGroups.find(
+    (group) => group.id === selectedCategoryGroupId
+  )
+  const selectedSubCategory =
+    selectedGroup && selectedCategorySubId
+      ? selectedGroup.categories.find((cat: any) => cat.id === selectedCategorySubId)
+      : { name: "all" }
 
   // Fetch category groups when currentBudget changes
   useEffect(() => {
@@ -99,8 +124,10 @@ export function CategoryCombobox() {
                     key={group.id}
                     onSelect={() => {
                       setSelectedCategoryGroupId(group.id)
+                      sessionStorage.setItem("selectedCategoryGroupId", group.id)
                       // Reset subcategory selection when a new group is selected
                       setSelectedCategorySubId(null)
+                      sessionStorage.removeItem("selectedCategorySubId")
                       setGroupOpen(false)
                     }}
                   >
@@ -126,7 +153,7 @@ export function CategoryCombobox() {
               aria-expanded={subOpen}
               className="w-full md:w-[300px] justify-between"
             >
-              {selectedSubCategory === "all" ? "All" : selectedSubCategory.name}
+              {selectedSubCategory.name}
               <ChevronsUpDown className="opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -136,29 +163,20 @@ export function CategoryCombobox() {
               <CommandList>
                 <CommandEmpty>No subcategories found.</CommandEmpty>
                 <CommandGroup>
-                  <CommandItem
-                    onSelect={() => {
-                      setSelectedCategorySubId(null)
-                      setSubOpen(false)
-                    }}
-                  >
-                    All
-                    {selectedSubCategory === "all" && <Check className="ml-auto" />}
-                  </CommandItem>
                   {selectedGroup.categories &&
                     selectedGroup.categories.map((cat: any) => (
                       <CommandItem
                         key={cat.id}
                         onSelect={() => {
                           setSelectedCategorySubId(cat.id)
+                          sessionStorage.setItem("selectedCategorySubId", cat.id)
                           setSubOpen(false)
                         }}
                       >
                         {cat.name}
-                        {selectedSubCategory !== "all" &&
-                          selectedCategorySubId === cat.id && (
-                            <Check className="ml-auto" />
-                          )}
+                        {selectedCategorySubId === cat.id && (
+                          <Check className="ml-auto" />
+                        )}
                       </CommandItem>
                     ))}
                 </CommandGroup>

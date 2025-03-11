@@ -221,10 +221,10 @@ export function DailyPayeeChart({ transactions }: PayeeCategoryChartProps) {
                                             return (
                                                 <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                                                     <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-sm font-bold">
-                                                        {data[activeIndex].activity.toLocaleString()}
+                                                        {data[activeIndex]?.activity?.toLocaleString()}
                                                     </tspan>
                                                     <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 24} className="fill-muted-foreground">
-                                                        {data[activeIndex].payee}
+                                                        {data[activeIndex]?.payee}
                                                     </tspan>
                                                 </text>
                                             )
