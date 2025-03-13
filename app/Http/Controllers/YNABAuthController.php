@@ -26,7 +26,7 @@ class YNABAuthController extends Controller
             // Fetch YNAB user data
             Log::info('Sending request to YNAB API for user data');
             $response = Http::withToken($token)
-                ->timeout(10)
+                ->timeout(15) // Increased timeout
                 ->get('https://api.youneedabudget.com/v1/user');
 
             Log::info('Received response from YNAB API for user data', [
@@ -84,7 +84,7 @@ class YNABAuthController extends Controller
             $defaultBudget = null;
             Log::info('Sending request to YNAB API for budgets with accounts');
             $budgetsResponse = Http::withToken($token)
-                ->timeout(10)
+                ->timeout(15) // Increased timeout
                 ->get('https://api.youneedabudget.com/v1/budgets?include_accounts=true');
 
             Log::info('Received response from YNAB API for budgets', [
@@ -122,11 +122,16 @@ class YNABAuthController extends Controller
                 'defaultBudgetId'          => session('defaultBudgetId'),
             ]);
 
-            Log::info('Rendering Dashboard Inertia page');
-            return Inertia::render('dashboard', [
-                'message'                  => 'Authentication successful!',
-                'budgetsArrayWithAccounts' => $budgetsArrayWithAccounts,
-                'defaultBudgetId'          => $defaultBudget['id'] ?? null,
+            // Return JSON response for the API call
+            Log::info('Returning JSON authentication success response');
+            return response()->json([
+                'success' => true,
+                'message' => 'Authentication successful!',
+                'redirect' => route('dashboard'),
+                'data' => [
+                    'budgetsArrayWithAccounts' => $budgetsArrayWithAccounts,
+                    'defaultBudgetId'          => $defaultBudget['id'] ?? null,
+                ]
             ]);
 
         } catch (\Exception $e) {
