@@ -14,32 +14,42 @@ class YNABAuthController extends Controller
 {
     public function authenticate(Request $request)
     {
+        Log::info('YNAB Authentication Started', ['ip' => $request->ip()]);
         try {
             // Validate the token
+            Log::info('Validating token input');
             $request->validate(['token' => 'required|string']);
 
             $token = $request->input('token');
+            Log::info('Token received', ['token' => $token]);
 
             // Fetch YNAB user data with more robust error handling
+            Log::info('Sending request to YNAB API for user data');
             $response = Http::withToken($token)
                 ->timeout(10) // Set a timeout
                 ->get('https://api.youneedabudget.com/v1/user');
+
+            Log::info('Received response from YNAB API for user data', [
+                'status' => $response->status(),
+                'body'   => $response->body()
+            ]);
 
             // Check if the request was successful
             if (!$response->successful()) {
                 Log::error('YNAB API Request Failed', [
                     'status' => $response->status(),
-                    'body' => $response->body(),
+                    'body'   => $response->body(),
                 ]);
 
                 return response()->json([
-                    'error' => 'Failed to authenticate with YNAB',
+                    'error'   => 'Failed to authenticate with YNAB',
                     'details' => $response->body()
                 ], 400);
             }
 
             // More robust JSON parsing
             $responseData = $response->json();
+            Log::info('Parsed JSON from YNAB API user response', ['responseData' => $responseData]);
 
             // Validate the response structure
             if (!isset($responseData['data']['user']['id'])) {
@@ -48,76 +58,91 @@ class YNABAuthController extends Controller
                 ]);
 
                 return response()->json([
-                    'error' => 'Received invalid data from YNAB',
+                    'error'    => 'Received invalid data from YNAB',
                     'response' => $responseData
                 ], 400);
             }
 
             $ynabUser = $responseData['data']['user'];
+            Log::info('YNAB user data validated', ['ynabUser' => $ynabUser]);
 
             // Create or update user with password handling
+            Log::info('Creating or updating user', ['ynab_user_id' => $ynabUser['id']]);
             $user = User::updateOrCreate(
                 ['ynab_user_id' => $ynabUser['id']],
                 [
-                    'name' => $ynabUser['name'] ?? 'YNAB User',
-                    'email' => $ynabUser['id'] . '@ynab.local',
+                    'name'              => $ynabUser['name'] ?? 'YNAB User',
+                    'email'             => $ynabUser['id'] . '@ynab.local',
                     'ynab_access_token' => $token,
                     // Generate a secure random password
-                    'password' => Hash::make(Str::random(40)),
+                    'password'          => Hash::make(Str::random(40)),
                 ]
             );
+            Log::info('User created or updated successfully', ['user' => $user]);
 
             // Ensure the token is always updated
             $user->ynab_access_token = $token;
             $user->save();
+            Log::info('User token updated and saved');
 
             // Initialize budgets variables with default values
             $budgetsArrayWithAccounts = [];
             $defaultBudget = null;
 
             // Fetch budgets with accounts
+            Log::info('Sending request to YNAB API for budgets with accounts');
             $budgetsResponse = Http::withToken($token)
                 ->timeout(10)
                 ->get('https://api.youneedabudget.com/v1/budgets?include_accounts=true');
 
+            Log::info('Received response from YNAB API for budgets', [
+                'status' => $budgetsResponse->status(),
+                'body'   => $budgetsResponse->body()
+            ]);
+
             if ($budgetsResponse->successful()) {
                 $budgetsData = $budgetsResponse->json();
+                Log::info('Parsed JSON from YNAB API budgets response', ['budgetsData' => $budgetsData]);
 
                 $budgetsArrayWithAccounts = $budgetsData['data']['budgets'] ?? [];
                 $defaultBudget = $budgetsData['data']['default_budget'] ?? null;
-
+                Log::info('Budgets data processed', [
+                    'budgetsArrayWithAccounts' => $budgetsArrayWithAccounts,
+                    'defaultBudget'            => $defaultBudget
+                ]);
             } else {
                 Log::error('Failed to fetch budgets from YNAB', [
                     'status' => $budgetsResponse->status(),
-                    'body' => $budgetsResponse->body(),
+                    'body'   => $budgetsResponse->body(),
                 ]);
             }
+
             // Log the user in
+            Log::info('Logging user in', ['user_id' => $user->id]);
             Auth::login($user);
+            Log::info('User logged in successfully');
 
             session([
                 'budgetsArrayWithAccounts' => $budgetsArrayWithAccounts,
-                'defaultBudgetId' => $defaultBudget['id'] ?? null,
+                'defaultBudgetId'          => $defaultBudget['id'] ?? null,
             ]);
-
-            Log::info('Session Check After Setting', [
+            Log::info('Session variables set', [
                 'budgetsArrayWithAccounts' => session('budgetsArrayWithAccounts'),
-                'defaultBudgetId' => session('defaultBudgetId'),
+                'defaultBudgetId'          => session('defaultBudgetId'),
             ]);
 
-            Log::info('Session After YNAB Fetch', session()->all());
-
+            Log::info('Redirecting to dashboard');
             return to_route('dashboard');  // No ->with()
 
         } catch (\Exception $e) {
             // Catch and log any unexpected errors
             Log::error('YNAB Authentication Error', [
                 'message' => $e->getMessage(),
-                'trace' => $e->getTraceAsString()
+                'trace'   => $e->getTraceAsString()
             ]);
 
             return response()->json([
-                'error' => 'An unexpected error occurred',
+                'error'   => 'An unexpected error occurred',
                 'message' => $e->getMessage()
             ], 500);
         }
