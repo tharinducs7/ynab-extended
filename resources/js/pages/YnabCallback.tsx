@@ -36,7 +36,7 @@ export default function YnabCallback() {
                     console.error('YNAB Authentication Error:', error);
                     sessionStorage.removeItem('ynab_access_token');
                     reset();
-                    // Display error to user
+                    // Display error 
                     alert('Failed to authenticate with YNAB. Please try again.');
                 });
         } else {
