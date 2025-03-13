@@ -97,10 +97,6 @@ class YNABAuthController extends Controller
                 Log::info('Parsed JSON from YNAB API budgets response', ['budgetsData' => $budgetsData]);
                 $budgetsArrayWithAccounts = $budgetsData['data']['budgets'] ?? [];
                 $defaultBudget = $budgetsData['data']['default_budget'] ?? null;
-                Log::info('Budgets data processed', [
-                    'budgetsArrayWithAccounts' => $budgetsArrayWithAccounts,
-                    'defaultBudget'            => $defaultBudget
-                ]);
             } else {
                 Log::error('Failed to fetch budgets from YNAB', [
                     'status' => $budgetsResponse->status(),
@@ -111,16 +107,6 @@ class YNABAuthController extends Controller
             // Log the user in
             Auth::login($user);
             Log::info('User logged in successfully');
-
-            // Store session data if needed
-            // session([
-            //     'budgetsArrayWithAccounts' => $budgetsArrayWithAccounts,
-            //     'defaultBudgetId'          => $defaultBudget['id'] ?? null,
-            // ]);
-            // Log::info('Session variables set', [
-            //     'budgetsArrayWithAccounts' => session('budgetsArrayWithAccounts'),
-            //     'defaultBudgetId'          => session('defaultBudgetId'),
-            // ]);
 
             // Return JSON response for the API call
             Log::info('Returning JSON authentication success response');

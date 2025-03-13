@@ -46,8 +46,6 @@ class HandleInertiaRequests extends Middleware
             'auth' => [
                 'user' => $request->user(),
             ],
-            'budgetsArrayWithAccounts' => fn () => Session::get('budgetsArrayWithAccounts', []),
-            'defaultBudgetId' => fn () => Session::get('defaultBudgetId', null),
         ];
     }
 }

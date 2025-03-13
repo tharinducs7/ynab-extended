@@ -8,22 +8,22 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { usePage } from "@inertiajs/react";
-import { SharedData } from "@/types";
 import { useYNABContext } from "@/context/YNABContext";
+import { useYnabStore } from "@/stores/useYnabStore";
 
 export function AppBudgets() {
-    const { budgetsArrayWithAccounts } = usePage<SharedData>().props;
+    const budgetsArrayWithAccounts = useYnabStore(state => state.budgetsArrayWithAccounts);
+    console.log(budgetsArrayWithAccounts, "budgetsArrayWithAccounts");
+
     const { currentBudget, setCurrentBudget } = useYNABContext();
-console.log(currentBudget);
 
     const handleBudgetChange = (budgetId: string) => {
-        const selectedBudget = budgetsArrayWithAccounts.find(b => b.id === budgetId);
+        const selectedBudget = budgetsArrayWithAccounts?.find(b => b.id === budgetId);
         if (selectedBudget) {
             setCurrentBudget({
                 id: selectedBudget.id,
                 name: selectedBudget.name,
-                currency: selectedBudget.currency_format.iso_code,
+                currency: selectedBudget?.currency_format?.iso_code || "LKR",
                 accounts: selectedBudget.accounts,
             });
         }
@@ -42,7 +42,7 @@ console.log(currentBudget);
                     <SelectLabel>Budgets</SelectLabel>
                     {budgetsArrayWithAccounts.map(budget => (
                         <SelectItem key={budget.id} value={budget.id}>
-                            {budget.name} ({budget.currency_format.iso_code})
+                            {budget.name} ({budget?.currency_format?.iso_code})
                         </SelectItem>
                     ))}
                 </SelectGroup>

@@ -1,33 +1,41 @@
 import { useEffect } from 'react';
 import axios from 'axios';
+import { useYnabStore } from '@/stores/useYnabStore';
 
 export default function YnabCallback() {
+    const {
+        setToken,
+        setAuthenticated,
+        setBudgets,
+        setDefaultBudgetId,
+        reset
+    } = useYnabStore();
+
     useEffect(() => {
         const hash = window.location.hash.substring(1);
         const params = new URLSearchParams(hash);
         const accessToken = params.get('access_token');
 
         if (accessToken) {
+            setToken(accessToken);
             // Store the token in sessionStorage
             sessionStorage.setItem('ynab_access_token', accessToken);
 
             axios.post(route('ynab.auth'), { token: accessToken })
-                .then(response => {
-                    console.log('YNAB Authentication Success:', response);
+                .then(({ data }) => {
+                    console.log('YNAB Authentication Success:', data);
                     // You can also store any other data if needed, e.g., user data or budgets
                     sessionStorage.setItem('ynab_authenticated', 'true');
+                    setAuthenticated(true);
+                    setBudgets(data.data.budgetsArrayWithAccounts);
+                    setDefaultBudgetId(data.data.defaultBudgetId ?? null);
 
-                    // Check if there's a redirect URL in the response
-                    if (response.data && response.data.redirect) {
-                        window.location.href = response.data.redirect;
-                    } else {
-                        // Fallback to dashboard
-                        window.location.href = route('dashboard');
-                    }
+                    window.location.href = data.data.defaultBudgetId ? route('dashboard') : route('ynab.setup');
                 })
                 .catch(error => {
                     console.error('YNAB Authentication Error:', error);
                     sessionStorage.removeItem('ynab_access_token');
+                    reset();
                     // Display error to user
                     alert('Failed to authenticate with YNAB. Please try again.');
                 });
