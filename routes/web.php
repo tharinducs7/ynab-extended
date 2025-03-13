@@ -18,6 +18,7 @@ Route::get('/', function () {
 
 Route::get('/login', fn() => inertia('Login'))->name('login');
 Route::get('/ynab-callback', fn() => inertia('YnabCallback'))->name('ynab.callback');
+Route::get('/dashboard', fn() => inertia('dashboard'))->name('dashboard.page');
 
 Route::post('/ynab/auth', [YNABAuthController::class, 'authenticate'])->name('ynab.auth');
 Route::post('/api/ynab/{budgetId}/age-of-money', [YNABController::class, 'fetchAgeOfMoney']);
@@ -31,7 +32,7 @@ Route::get('/api/ynab/monthly-analytics/{budgetId}/transactions/{month?}', [Anal
 // });
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/dashboard', fn() => inertia('dashboard'))->name('dashboard');
+ //   Route::get('/dashboard', fn() => inertia('dashboard'))->name('dashboard-page');
     Route::get('/category-overview', fn() => inertia('categoryOverview'))->name('category-overview');
     Route::get('/daily-stats', fn() => inertia('daily-stats'))->name('daily-stats');
 
