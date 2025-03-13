@@ -113,14 +113,14 @@ class YNABAuthController extends Controller
             Log::info('User logged in successfully');
 
             // Store session data if needed
-            session([
-                'budgetsArrayWithAccounts' => $budgetsArrayWithAccounts,
-                'defaultBudgetId'          => $defaultBudget['id'] ?? null,
-            ]);
-            Log::info('Session variables set', [
-                'budgetsArrayWithAccounts' => session('budgetsArrayWithAccounts'),
-                'defaultBudgetId'          => session('defaultBudgetId'),
-            ]);
+            // session([
+            //     'budgetsArrayWithAccounts' => $budgetsArrayWithAccounts,
+            //     'defaultBudgetId'          => $defaultBudget['id'] ?? null,
+            // ]);
+            // Log::info('Session variables set', [
+            //     'budgetsArrayWithAccounts' => session('budgetsArrayWithAccounts'),
+            //     'defaultBudgetId'          => session('defaultBudgetId'),
+            // ]);
 
             // Return JSON response for the API call
             Log::info('Returning JSON authentication success response');
