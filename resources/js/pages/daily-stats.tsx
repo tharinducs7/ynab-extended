@@ -21,7 +21,7 @@ const DailyStats = () => {
                 <main className="flex-1 p-4">
                     <div className="flex flex-col md:flex-row items-center justify-between mb-4 space-y-4 md:space-y-0">
                         <HeadingSmall
-                            title="Comprehensive Category Overview"
+                            title="Daily Analytics"
                             description="Explore detailed insights including category transactions, payee information, and more."
                         />
                         <DatePicker />

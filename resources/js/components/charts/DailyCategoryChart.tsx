@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/chart"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import noDataImg from "../../../../public/no_data.jpg";
+import { useYNABContext } from "@/context/YNABContext"
 
 // Define income and expense color scales (from lowest to highest intensity)
 const incomeColors = ["#86efac", "#4ade80", "#22c55e", "#16a34a", "#15803d"]
@@ -68,9 +69,7 @@ export function CategoryBarChart({ transactions }: CategoryBarChartProps) {
         return result.slice(0, 5)
     }, [validTransactions])
 
-    console.log(aggregatedIncomeData, "aggregatedExpenseData", aggregatedExpenseData)
-    // Always show both tabs. Default to "income".
-    const [activeTab, setActiveTab] = React.useState<"income" | "expense">("income")
+    const { activeTab, setActiveTab } = useYNABContext();
 
     // Select the data and color scale based on the active tab.
     const data = activeTab === "income" ? aggregatedIncomeData : aggregatedExpenseData

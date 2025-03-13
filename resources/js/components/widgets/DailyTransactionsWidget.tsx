@@ -12,7 +12,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { formatBalance } from "@/lib/utils"
 
 export function DailyTransactionsWidget({ transactions }: { transactions: any[] }) {
-    const { selectedDate, currentBudget } = useYNABContext()
+    const { selectedDate, currentBudget, activeTab, setActiveTab } = useYNABContext()
 
     // Filter transactions by selected date (ignoring time) and adjust amount
     const filteredTransactions = React.useMemo(() => {
@@ -49,9 +49,6 @@ export function DailyTransactionsWidget({ transactions }: { transactions: any[] 
         () => filteredTransactions.filter((txn) => txn.category_id === null),
         [filteredTransactions]
     )
-
-    // We'll use a tab view in the transactions section.
-    const [activeTab, setActiveTab] = React.useState<"income" | "expense" | "transfers">("income")
 
     // Get data for current tab.
     const transactionsForTab = React.useMemo(() => {

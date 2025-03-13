@@ -69,11 +69,8 @@ export function DailyStatContainer() {
     return <p>No data available.</p>
   }
 
-  console.log(data.chart_data, "data")
-
   return (
-    <div className="p-4 border rounded-lg">
-      <h2 className="text-xl font-bold mb-4">Daily Analytics</h2>
+    <div className="">
       <div className="grid auto-rows-min gap-4 md:grid-cols-1">
         <div className="">
           <DailyTransactionsWidget transactions={data.transactions} />

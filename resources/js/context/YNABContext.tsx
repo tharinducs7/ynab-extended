@@ -23,6 +23,8 @@ interface YNABContextType {
     setMonthlyChartData: (data: any) => void;
     selectedDate: Date;
     setSelectedDate: (date: Date) => void;
+    activeTab: "income" | "expense" | "transfers";
+    setActiveTab: (tab: "income" | "expense" | "transfers") => void;
 }
 
 const YNABContext = createContext<YNABContextType | undefined>(undefined);
@@ -56,8 +58,16 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [selectedCategorySubId, setSelectedCategorySubId] = useState<string | null>(null);
     const [payeeChartData, setPayeeChartData] = useState<any | null>(null);
     const [monthlyChartData, setMonthlyChartData] = useState<any | null>(null);
-
     const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+
+    const [activeTab, setActiveTab] = useState<"income" | "expense" | "transfers">(() => {
+        return (sessionStorage.getItem("activeTab") as "income" | "expense" | "transfers") || "income";
+      });
+
+      useEffect(() => {
+        sessionStorage.setItem("activeTab", activeTab);
+      }, [activeTab]);
+
     useEffect(() => {
         const storedBudget = sessionStorage.getItem("currentBudget");
         if (storedBudget) {
@@ -90,6 +100,8 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setMonthlyChartData,
                 selectedDate,
                 setSelectedDate,
+                activeTab,
+                setActiveTab,
             }}
         >
             {children}

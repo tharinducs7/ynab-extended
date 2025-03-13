@@ -28,6 +28,7 @@ import { Avatar, AvatarImage } from "../ui/avatar"
 import { formatPayeeForUrl } from "@/lib/utils"
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import noDataImg from "../../../../public/no_data.jpg";
+import { useYNABContext } from "@/context/YNABContext"
 // Define income and expense color scales (from lowest to highest intensity)
 const incomeColors = ["#86efac", "#4ade80", "#22c55e", "#16a34a", "#15803d"]
 const expenseColors = ["#f87171", "#ef4444", "#dc2626", "#dc2626", "#b91c1c"]
@@ -84,10 +85,13 @@ export function DailyPayeeChart({ transactions }: PayeeCategoryChartProps) {
     const hasIncome = aggregatedIncomeData.length > 0
     const hasExpense = aggregatedExpenseData.length > 0
 
-    // We'll use tabs only if we have both.
-    const [activeTab, setActiveTab] = React.useState<"income" | "expense">(
-        hasIncome && !hasExpense ? "income" : hasExpense && !hasIncome ? "expense" : "income"
-    )
+    const { activeTab, setActiveTab } = useYNABContext();
+
+    React.useEffect(() => {
+        if (hasIncome && !hasExpense) setActiveTab("income");
+        else if (!hasIncome && hasExpense) setActiveTab("expense");
+        else setActiveTab("income");
+    }, [hasIncome, hasExpense, setActiveTab]);
 
     // Use the appropriate data and color scale depending on the active tab.
     const data: PayeeDataItem[] = activeTab === "income" ? aggregatedIncomeData : aggregatedExpenseData
