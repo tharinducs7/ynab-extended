@@ -132,7 +132,7 @@ class YNABAuthController extends Controller
             ]);
 
             Log::info('Redirecting to dashboard');
-            return to_route('dashboard');  // No ->with()
+            return redirect()->route('dashboard')->with('message', 'Authentication successful!');
 
         } catch (\Exception $e) {
             // Catch and log any unexpected errors
