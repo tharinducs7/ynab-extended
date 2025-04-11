@@ -1,8 +1,5 @@
 
-import { AgeOfMoneyChart } from '@/components/charts/AgeOfMoneyChart';
-import BalanceChart from '@/components/charts/BalanceChart';
-import { AccountsWidget } from '@/components/widgets/AccountsWidget';
-import { ScheduledTransactionWidget } from '@/components/widgets/ScheduledTransactionWidget';
+import AccountsDisplay from '@/components/widgets/AccountsDisplay';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
@@ -19,20 +16,23 @@ export default function Dashboard() {
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Dashboard" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4">
+                <div className="grid auto-rows-min gap-4 md:grid-cols-1">
+                    <AccountsDisplay />
+                </div>
                 <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                     <div className="">
-                        <AgeOfMoneyChart />
+                    {/* <TransactionsSheet /> */}
                     </div>
                     <div className="">
-                        <AccountsWidget />
+
                     </div>
                     <div className="">
-                        <BalanceChart />
+
                     </div>
                 </div>
                 <div className="grid auto-rows-min gap-4 md:grid-cols-2">
                     <div className="">
-                        <ScheduledTransactionWidget />
+
                     </div>
                     <div className="">
                     </div>

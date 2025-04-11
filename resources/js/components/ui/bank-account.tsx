@@ -1,26 +1,19 @@
-import { useYNABContext } from '@/context/YNABContext'
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { formatPayeeForUrl } from '@/lib/utils'
 import { Avatar, AvatarImage, AvatarFallback } from '../ui/avatar'
 import React from 'react'
 
 interface BankAccountProps {
-    account: {
-        id: string
-        name: string
-        balance: number
-        type: string
-        note: string
-    }
+    account: any;
+    budget?: any;
 }
 
-const BankAccount: React.FC<BankAccountProps> = ({ account }) => {
-    const { currentBudget } = useYNABContext()
-
+const BankAccount: React.FC<BankAccountProps> = ({ account, budget }) => {
     const formattedBalance = new Intl.NumberFormat('en-LK', {
         style: 'decimal',
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
-    }).format(account.balance / 1000) + ` ${currentBudget?.currency || 'LKR'}`
+    }).format(account.balance / 1000) + ` ${budget?.currency_format?.iso_code || 'LKR'}`
 
     const avatarUrl = `https://ik.imagekit.io/apbypokeqx/tr:di-default.png/${formatPayeeForUrl(account.note)}.png`
 
@@ -37,14 +30,12 @@ const BankAccount: React.FC<BankAccountProps> = ({ account }) => {
                         {account.name.charAt(0).toUpperCase()}
                     </AvatarFallback>
                 </Avatar>
-                <div className="font-medium tracking-tight max-w-[180px] truncate">
+                <div className="text-xs tracking-tight max-w-[180px] truncate">
                     {account.name}
+                    <div className="text-sm font-medium text-foreground whitespace-nowrap mt-1">
+                        {formattedBalance}
+                    </div>
                 </div>
-            </div>
-
-            {/* Right Section - Balance */}
-            <div className="text-sm font-medium text-foreground whitespace-nowrap">
-                {formattedBalance}
             </div>
         </div>
     )

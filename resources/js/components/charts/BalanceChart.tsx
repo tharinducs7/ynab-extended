@@ -1,16 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useEffect, useMemo, useState } from "react"
-import { useYNABContext } from "@/context/YNABContext"
 import { Label, Pie, PieChart, Sector } from "recharts"
 import { PieSectorDataItem } from "recharts/types/polar/Pie"
-
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
     ChartConfig,
     ChartContainer,
@@ -27,6 +19,29 @@ import {
 } from "@/components/ui/select"
 import { formatBalance } from "@/lib/utils"
 
+// Account type definition
+export interface Account {
+    id: string;
+    name: string;
+    type: string;
+    on_budget: boolean;
+    closed: boolean;
+    note: string | null;
+    balance: number;
+    cleared_balance: number;
+    uncleared_balance: number;
+    transfer_payee_id: string;
+    direct_import_linked: boolean;
+    direct_import_in_error: boolean;
+    last_reconciled_at: string | null;
+    debt_original_balance: number | null;
+    debt_interest_rates: Record<string, number>;
+    debt_minimum_payments: Record<string, number>;
+    debt_escrow_amounts: any[];
+    deleted: boolean;
+}
+
+// Map account types to better display names
 const typeLabels: Record<string, string> = {
     otherAsset: "Investments & Assets",
     creditCard: "Credit Cards",
@@ -44,6 +59,7 @@ const typeColors: Record<string, string> = {
     cash: "#9B59B6",           // Purple (Cash Accounts)
 }
 
+// Create a chart config based on the typeLabels
 const chartConfig = Object.fromEntries(
     Object.entries(typeLabels).map(([key, label], index) => [
         key,
@@ -54,37 +70,44 @@ const chartConfig = Object.fromEntries(
     ])
 ) as ChartConfig
 
-export default function BalancePieChart() {
-    const { currentBudget } = useYNABContext()
-
+// Component Props now expect accounts and a currency value.
+export default function BalancePieChart({
+    accounts,
+    currency,
+}: {
+    accounts: Account[];
+    currency: string;
+}) {
+    // Compute chart data from the provided accounts prop.
     const chartData = useMemo(() => {
-        const accounts = currentBudget?.accounts || []
-
+        // Filter active accounts (excluding deleted or closed)
         const activeAccounts = accounts.filter(account => !account.deleted && !account.closed)
 
+        // Group active accounts by type
         const groupedBalances = activeAccounts.reduce<Record<string, number>>((acc, account) => {
             if (!acc[account.type]) {
                 acc[account.type] = 0
             }
+            // Divide by 1000 if necessary (adjust as needed)
             acc[account.type] += account.balance / 1000
             return acc
         }, {})
 
-        console.log(groupedBalances, "groupedBalances");
+        console.log(groupedBalances, "groupedBalances")
 
+        // Convert grouped data to chart-friendly entries
         return Object.entries(groupedBalances).map(([type, balance]) => ({
             type,
             label: typeLabels[type] || type,
-            balance: balance,
+            balance,
             displayBalance: balance,
             fill: typeColors[type] || "gray",
         }))
-    }, [currentBudget])
+    }, [accounts])
 
+    // Manage state for the active account type for the chart.
     const [activeType, setActiveType] = useState("creditCard")
-
     const activeIndex = chartData.findIndex(item => item.type === activeType)
-
     const types = chartData.map(item => item.type)
 
     useEffect(() => {
@@ -95,7 +118,7 @@ export default function BalancePieChart() {
     }, [chartData])
 
     return (
-        <Card data-chart="ynab-balance-pie" className="flex flex-col h-[450px]">
+        <Card data-chart="ynab-balance-pie" className="flex flex-col h-[450px] w-[500px]">
             <ChartStyle id="ynab-balance-pie" config={chartConfig} />
             <CardHeader className="flex-row items-start space-y-0 pb-0">
                 <div className="grid gap-1">
@@ -167,7 +190,7 @@ export default function BalancePieChart() {
                                                     y={viewBox.cy}
                                                     className="fill-foreground text-SM font-bold"
                                                 >
-                                                    {formatBalance(chartData[activeIndex]?.balance || 0, currentBudget?.currency)}
+                                                    {formatBalance(chartData[activeIndex]?.balance || 0, currency)}
                                                 </tspan>
                                                 <tspan
                                                     x={viewBox.cx}

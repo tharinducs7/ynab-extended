@@ -375,4 +375,66 @@ class YNABController extends Controller
         ]);
     }
 
+    public function fetchPayees(Request $request, $budgetId)
+    {
+        $token = $request->input('token');
+
+        if (!$token) {
+            return response()->json(['error' => 'YNAB token is required'], 400);
+        }
+
+        $response = Http::withToken($token)
+            ->get("https://api.ynab.com/v1/budgets/{$budgetId}/payees");
+
+        if ($response->failed()) {
+            \Log::error('YNAB API Error - Fetch Payees', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            return response()->json(['error' => 'Failed to fetch YNAB payees'], 500);
+        }
+
+        $data = $response->json();
+
+        // Optional: transform or filter data as needed
+        $payees = collect($data['data']['payees'])->map(function ($payee) {
+            return [
+                'id' => $payee['id'],
+                'name' => $payee['name'],
+                'deleted' => $payee['deleted'],
+            ];
+        });
+
+        return response()->json([
+            'payees' => $payees,
+        ]);
+    }
+
+    public function fetchTransactionsByAccount(Request $request, $budgetId, $accountId)
+    {
+        $token = $request->input('token');
+
+        if (!$token) {
+            return response()->json(['error' => 'YNAB token is required'], 400);
+        }
+
+        $response = Http::withToken($token)
+            ->get("https://api.ynab.com/v1/budgets/{$budgetId}/accounts/{$accountId}/transactions");
+
+        if ($response->failed()) {
+            \Log::error('YNAB API Error - Fetch Transactions by Account', [
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+            return response()->json(['error' => 'Failed to fetch YNAB transactions for account'], 500);
+        }
+
+        $data = $response->json();
+        $transactions = $data['data']['transactions'] ?? [];
+
+        return response()->json([
+            'transactions' => $transactions
+        ]);
+    }
+
 }

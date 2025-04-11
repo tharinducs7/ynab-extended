@@ -17,7 +17,6 @@ import {
     ChartTooltip,
     ChartTooltipContent
 } from "@/components/ui/chart"
-import { useYNABContext } from "@/context/YNABContext"
 
 interface AgeOfMoneyData {
     month: string
@@ -32,18 +31,18 @@ const chartConfig = {
     },
 } satisfies ChartConfig
 
-export function AgeOfMoneyChart() {
+export function AgeOfMoneyChart({ budgetId }: { budgetId: string }) {
     const [chartData, setChartData] = useState<AgeOfMoneyData[]>([])
-    const { currentBudget } = useYNABContext();
-
     const [currentAgeOfMoney, setCurrentAgeOfMoney] = useState<number | null>(null);
     const [trendPercentage, setTrendPercentage] = useState<number | null>(null);
     const [trendDirection, setTrendDirection] = useState<'up' | 'down' | 'neutral' | null>(null);
 
     useEffect(() => {
-        if (!currentBudget) return;
+        console.log(budgetId, "budgetId");
 
-        const storedDataKey = `ageOfMoneyData-${currentBudget.id}`;
+        if (!budgetId) return;
+
+        const storedDataKey = `ageOfMoneyData-${budgetId}`;
         const storedData = sessionStorage.getItem(storedDataKey);
 
         if (storedData) {
@@ -55,7 +54,7 @@ export function AgeOfMoneyChart() {
         } else {
             const accessToken = sessionStorage.getItem('ynab_access_token');
 
-            axios.post(`/api/ynab/${currentBudget.id}/age-of-money`, { token: accessToken })
+            axios.post(`/api/ynab/${budgetId}/age-of-money`, { token: accessToken })
                 .then((response) => {
                     const { chart_data, current_age_of_money, trend_percentage, trend_direction } = response.data;
 
@@ -68,10 +67,10 @@ export function AgeOfMoneyChart() {
                 })
                 .catch((error) => console.error("Failed to fetch Age of Money data:", error));
         }
-    }, [currentBudget]);
+    }, []);
 
     return (
-        <Card className="h-[450px]">
+        <Card className="h-[450px] w-[500px]">
             <CardHeader>
                 <CardTitle>Age of Money</CardTitle>
                 <CardDescription>Tracking Age of Money over the Last 6 Months</CardDescription>

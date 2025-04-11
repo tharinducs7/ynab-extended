@@ -26,15 +26,15 @@ interface Transaction {
     memo: string
 }
 
-export function ScheduledTransactionWidget() {
+export function ScheduledTransactionWidget({ budgetId }: { budgetId: string }) {
     const { currentBudget } = useYNABContext()
     const [transactions, setTransactions] = useState<Transaction[]>([])
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
-        if (!currentBudget) return
+        if (!budgetId) return
 
-        const storedDataKey = `scheduledTransactions-${currentBudget.id}`
+        const storedDataKey = `scheduledTransactions-${budgetId}`
         const cachedData = sessionStorage.getItem(storedDataKey)
 
         if (cachedData) {
@@ -44,13 +44,13 @@ export function ScheduledTransactionWidget() {
         } else {
             fetchTransactions(storedDataKey)
         }
-    }, [currentBudget])
+    }, [])
 
     const fetchTransactions = (storageKey: string) => {
         const accessToken = sessionStorage.getItem('ynab_access_token')
-        if (!accessToken || !currentBudget) return
+        if (!accessToken || !budgetId) return
 
-        axios.post(`/api/ynab/${currentBudget.id}/scheduled-transactions`, { token: accessToken })
+        axios.post(`/api/ynab/${budgetId}/scheduled-transactions`, { token: accessToken })
             .then((response) => {
                 const { scheduledTransactions } = response.data
                 setTransactions(scheduledTransactions)
@@ -81,7 +81,7 @@ export function ScheduledTransactionWidget() {
     }
 
     return (
-        <Card className="h-[650px]">
+        <Card className={transactions.length > 5 ? 'h-[1100px]' : 'h-[370px]'}>
             <CardHeader>
                 <CardTitle>Scheduled Transactions</CardTitle>
                 <CardDescription>
@@ -106,9 +106,9 @@ export function ScheduledTransactionWidget() {
                             {paidTransactions.length === 0 ? (
                                 <p className="text-muted-foreground text-sm">No paid transactions found.</p>
                             ) : (
-                                <ScrollArea className="h-[510px]">
+                                <ScrollArea className={paidTransactions.length > 5 ? 'h-[910px]' : 'h-[300px]'}>
                                     {paidTransactions.map((txn) => (
-                                        <TransactionCard key={txn.id} transaction={{
+                                        <TransactionCard minimalCard key={txn.id} transaction={{
                                             ...txn,
                                             amountDisplay: getFormattedAmount(txn.amount)
                                         }} />
@@ -121,12 +121,13 @@ export function ScheduledTransactionWidget() {
                             {toBePaidTransactions.length === 0 ? (
                                 <p className="text-muted-foreground text-sm">No transactions to be paid found.</p>
                             ) : (
-                                <ScrollArea className="h-[510px]">
+                                <ScrollArea className={toBePaidTransactions.length > 5 ? 'h-[910px]' : 'h-[300px]'}>
                                     {toBePaidTransactions.map((txn) => (
                                         <TransactionCard key={txn.id} transaction={{
                                             ...txn,
                                             amountDisplay: getFormattedAmount(txn.amount)
-                                        }} />
+                                        }}
+                                        minimalCard />
                                     ))}
                                 </ScrollArea>
                             )}

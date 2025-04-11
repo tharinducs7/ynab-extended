@@ -4,7 +4,7 @@ import { NavUser } from '@/components/nav-user';
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid } from 'lucide-react';
+import { BookOpen, Folder, LayoutGrid, CalendarSearch, ChartColumnStacked } from 'lucide-react';
 import AppLogo from './app-logo';
 
 const mainNavItems: NavItem[] = [
@@ -16,12 +16,12 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Category Overview',
         url: '/category-overview',
-        icon: LayoutGrid,
+        icon: ChartColumnStacked,
     },
     {
-        title: 'Daily Stats',
+        title: 'Daily Overview',
         url: '/daily-stats',
-        icon: LayoutGrid,
+        icon: CalendarSearch,
     }
 ];
 

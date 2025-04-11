@@ -60,6 +60,8 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, minimalC
                     {!minimalCard && (<div className="w-[400px] truncate text-xs text-muted-foreground">
                         {new Date(transaction.date).toLocaleDateString()} | {transaction.category_name} | {transaction.memo}
                     </div>)}
+                    {minimalCard && <div className="text-xs text-muted-foreground">{new Date(transaction.date).toLocaleDateString()} | {transaction.category_name}</div>}
+                    {minimalCard && <div className="text-xs text-muted-foreground">{transaction.memo}</div>}
                 </div>
             </div>
 

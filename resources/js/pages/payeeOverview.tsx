@@ -11,12 +11,12 @@ import TransactionDrawer from '@/components/transactions-drawer';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
-        title: 'Category Overview',
-        href: '/category-overview',
+        title: 'Payee Overview',
+        href: '/payee-overview',
     },
 ];
 
-const CategoryOverview = () => {
+const PayeeOverview = () => {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Category Overview" />
@@ -24,7 +24,7 @@ const CategoryOverview = () => {
                 <main className="flex-1 p-4">
                     <div className="flex flex-col md:flex-row items-center justify-between mb-4 space-y-4 md:space-y-0">
                         <HeadingSmall
-                            title="Comprehensive Category Overview"
+                            title="Comprehensive Payee Overview"
                             description="Explore detailed insights including category transactions, payee information, and more."
                         />
                         <TransactionDrawer />
@@ -56,4 +56,4 @@ const CategoryOverview = () => {
     );
 };
 
-export default CategoryOverview;
+export default PayeeOverview;

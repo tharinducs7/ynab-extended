@@ -12,6 +12,7 @@ import { useYNABContext } from "@/context/YNABContext"
 import BankAccount from "../ui/bank-account"
 import { ScrollArea, ScrollBar } from "../ui/scroll-area"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
+import { useYnabStore } from "@/stores/useYnabStore"
 
 interface Account {
     id: string
@@ -60,12 +61,16 @@ function calculateTotal(accounts: Account[]): number {
 
 export function AccountsWidget() {
     const { currentBudget } = useYNABContext()
+    const budgetsArrayWithAccounts = useYnabStore(state => state.budgetsArrayWithAccounts);
+    console.log(budgetsArrayWithAccounts, "budgetsArrayWithAccounts");
     const [groupedAccounts, setGroupedAccounts] = useState<Record<string, Account[]>>({})
     const [accountTypes, setAccountTypes] = useState<string[]>([])
     const [selectedTab, setSelectedTab] = useState<string | undefined>(undefined)
 
     // When the budget or accounts change, group the accounts and select the first tab
     useEffect(() => {
+        console.log(currentBudget, "currentBudget?.accounts");
+
         if (currentBudget?.accounts) {
             const grouped = filterAndGroupAccounts(currentBudget.accounts)
             setGroupedAccounts(grouped)
