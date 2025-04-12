@@ -473,4 +473,175 @@ class YNABController extends Controller
 
         return response()->json($result);
     }
+
+    public function fetchTransactionsByPayee(Request $request, $budgetId, $payeeId)
+    {
+        $token = $request->input('token');
+        if (!$token) {
+            return response()->json(['error' => 'YNAB token is required'], 400);
+        }
+
+        // Generate a cache key
+        $cacheKey = "ynab_transactions_payee_{$budgetId}_{$payeeId}_" . md5($token);
+
+        $result = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($token, $budgetId, $payeeId) {
+            // Fetch the raw transactions + subtransactions from YNAB
+            $response = Http::withToken($token)
+                ->get("https://api.ynab.com/v1/budgets/{$budgetId}/payees/{$payeeId}/transactions");
+
+            if ($response->failed()) {
+                \Log::error('YNAB API Error - Fetch Transactions by Payee', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                return null;
+            }
+
+            // The API returns both parent transactions and subtransactions in a flattened array
+            $data = $response->json();
+            $items = $data['data']['transactions'] ?? [];
+
+            // Step 1: Separate them into parents and children
+            $parents = [];
+            $childrenMap = []; // key: parent_transaction_id => array of subtransactions
+
+            foreach ($items as $item) {
+                // Convert from milliunits to normal currency
+                $item['amount'] = $item['amount'] / 1000.0;
+
+                if ($item['type'] === 'transaction') {
+                    // This is a parent-level transaction
+                    $parents[$item['id']] = $item;
+                } elseif ($item['type'] === 'subtransaction') {
+                    // This is a subtransaction, belongs to a parent
+                    $pId = $item['parent_transaction_id'];
+                    if (!isset($childrenMap[$pId])) {
+                        $childrenMap[$pId] = [];
+                    }
+                    $childrenMap[$pId][] = $item;
+                }
+            }
+
+            // Step 2: Attach subtransactions to their parent, if they exist
+            //         and sort everything by date descending
+            // We need a single unified array that has:
+            //   [ [parent + subtransactions], [parent + subtransactions], ...]
+            $unifiedTransactions = [];
+
+            foreach ($parents as $parentId => $parentTx) {
+                // If this parent has subtransactions, attach them
+                if (isset($childrenMap[$parentId])) {
+                    $parentTx['subtransactions'] = $childrenMap[$parentId];
+                } else {
+                    $parentTx['subtransactions'] = [];
+                }
+                $unifiedTransactions[] = $parentTx;
+            }
+
+            // In some YNAB data sets, there might be subtransactions whose parent wasn't
+            // in $parents. This is rare, but let's handle it anyway.
+            // We can treat each orphan subtransaction as a standalone "transaction".
+            // Usually won't happen, but just in case:
+            foreach ($childrenMap as $pId => $subs) {
+                if (!isset($parents[$pId])) {
+                    // Make a dummy parent with these subtransactions
+                    $dummyParent = [
+                        'id' => $pId,
+                        'date' => $subs[0]['date'] ?? '2025-01-01', // fallback
+                        'amount' => 0, // no parent amount
+                        'memo' => 'Orphaned subtransaction(s)',
+                        'type' => 'transaction',
+                        'category_name' => 'Unknown Category',
+                        'subtransactions' => $subs,
+                    ];
+                    $unifiedTransactions[] = $dummyParent;
+                }
+            }
+
+            // Sort the unifiedTransactions by date DESC
+            usort($unifiedTransactions, function ($a, $b) {
+                // parse the date. If missing date, fallback
+                return strtotime($b['date'] ?? '1900-01-01') - strtotime($a['date'] ?? '1900-01-01');
+            });
+
+            // Step 3: Calculate analytics
+            $totalSpent = 0.0;
+            $totalReceived = 0.0;
+            $categoryBreakdown = [];
+
+            // For each parent, if subtransactions exist, sum them. Otherwise sum parent.
+            foreach ($unifiedTransactions as &$parentTx) {
+                $hasSubtransactions = !empty($parentTx['subtransactions']);
+
+                if ($hasSubtransactions) {
+                    // We IGNORE the parent's `amount` to avoid double-counting,
+                    // and sum all subtransactions instead.
+                    foreach ($parentTx['subtransactions'] as &$sub) {
+                        $catName = $sub['category_name'] ?? 'Unknown Category';
+                        $amt = $sub['amount'];
+
+                        if ($amt < 0) {
+                            $totalSpent += abs($amt);
+                        } else {
+                            $totalReceived += $amt;
+                        }
+
+                        if (!isset($categoryBreakdown[$catName])) {
+                            $categoryBreakdown[$catName] = [
+                                'spent' => 0.0,
+                                'received' => 0.0,
+                            ];
+                        }
+
+                        if ($amt < 0) {
+                            $categoryBreakdown[$catName]['spent'] += abs($amt);
+                        } else {
+                            $categoryBreakdown[$catName]['received'] += $amt;
+                        }
+                    }
+                } else {
+                    // No subtransactions => just sum the parent
+                    $catName = $parentTx['category_name'] ?? 'Unknown Category';
+                    $amt = $parentTx['amount'];
+
+                    if ($amt < 0) {
+                        $totalSpent += abs($amt);
+                    } else {
+                        $totalReceived += $amt;
+                    }
+
+                    if (!isset($categoryBreakdown[$catName])) {
+                        $categoryBreakdown[$catName] = [
+                            'spent' => 0.0,
+                            'received' => 0.0,
+                        ];
+                    }
+
+                    if ($amt < 0) {
+                        $categoryBreakdown[$catName]['spent'] += abs($amt);
+                    } else {
+                        $categoryBreakdown[$catName]['received'] += $amt;
+                    }
+                }
+            }
+
+            // Return everything
+            return [
+                // We’ll return the unified list of parent + subtransactions
+                // so the frontend can see them easily
+                'transactions' => $unifiedTransactions,
+                'analytics' => [
+                    'totalSpent' => round($totalSpent, 2),
+                    'totalReceived' => round($totalReceived, 2),
+                    'categoryBreakdown' => $categoryBreakdown,
+                ],
+            ];
+        });
+
+        if ($result === null) {
+            return response()->json(['error' => 'Failed to fetch YNAB transactions for payee'], 500);
+        }
+
+        return response()->json($result);
+    }
 }

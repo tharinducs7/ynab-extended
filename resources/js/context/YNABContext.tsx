@@ -31,6 +31,8 @@ interface YNABContextType {
     setSelectedAccount: React.Dispatch<React.SetStateAction<any | null>>;
     selectedBudget: any | null;
     setSelectedBudget: React.Dispatch<React.SetStateAction<any | null>>;
+    selectedPayee: any | null;
+    setSelectedPayee: React.Dispatch<React.SetStateAction<any | null>>;
 }
 
 const YNABContext = createContext<YNABContextType | undefined>(undefined);
@@ -94,6 +96,7 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const [isSheetOpen, setIsSheetOpen] = useState(false);
       const [selectedAccount, setSelectedAccount] = useState<any | null>(null);
       const [selectedBudget, setSelectedBudget] = useState<any | null>(null);
+      const [selectedPayee, setSelectedPayee] = useState<any | null>(null);
 
     return (
         <YNABContext.Provider
@@ -117,7 +120,9 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 selectedAccount,
                 setSelectedAccount,
                 setSelectedBudget,
-                selectedBudget
+                selectedBudget,
+                setSelectedPayee,
+                selectedPayee
             }}
         >
             {children}

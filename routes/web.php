@@ -27,6 +27,7 @@ Route::post('/api/ynab/{budgetId}/categories/{categoryId}/transactions', [YNABCo
 Route::get('/api/ynab/monthly-analytics/{budgetId}/transactions/{month?}', [AnalyticsController::class, 'fetchMonthlyTransactionsChart']);
 Route::post('/api/ynab/{budgetId}/accounts/{accountId}/transactions', [YNABController::class, 'fetchTransactionsByAccount']);
 Route::post('/api/ynab/{budgetId}/payees', [YNABController::class, 'fetchPayees']);
+Route::post('/api/ynab/{budgetId}/payees/{payeeId}/transactions', [YNABController::class, 'fetchTransactionsByPayee']);
 
 // Route::middleware(['throttle:ynab'])->group(function () {
 //     Route::post('/ynab/auth', [YNABAuthController::class, 'authenticate'])->name('ynab.auth');

@@ -3,6 +3,7 @@ import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';
 import { PayeesList } from '@/components/widgets/PayeesList';
+import { PayeeTransactionsSheet } from '@/components/widgets/PayeeTransactionsSheet';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -14,22 +15,18 @@ const breadcrumbs: BreadcrumbItem[] = [
 const PayeeOverview = () => {
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
-            <Head title="Category Overview" />
+            <Head title="Payee Overview" />
             <div className="flex">
                 <main className="flex-1 p-4">
-                    {/* <div className="flex flex-col md:flex-row items-center justify-between mb-4 space-y-4 md:space-y-0">
-                        <HeadingSmall
-                            title="Comprehensive Payee Overview"
-                            description="Explore detailed insights including category transactions, payee information, and more."
-                        />
-                        <CategoryCombobox />
-                    </div> */}
-                    <div className="grid auto-rows-min gap-4 md:grid-cols-2">
-                        <div className="w-[400px]">
-                            <PayeesList budgetId='ef90840e-87dd-4846-be3c-e47ab0965393' />
+                    {/* Replace the grid with a simple flex container */}
+                    <div className="flex gap-4">
+                        {/* Left side at ~15% width */}
+                        <div className="w-[25%] min-w-[250px]">
+                            <PayeesList />
                         </div>
-                        <div className="">
-                            {/* <MonthlyCategorySpending /> */}
+                        {/* Right side fills remaining space */}
+                        <div className="flex-1">
+                            <PayeeTransactionsSheet />
                         </div>
                     </div>
                 </main>
