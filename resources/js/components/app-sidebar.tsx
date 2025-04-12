@@ -22,7 +22,12 @@ const mainNavItems: NavItem[] = [
         title: 'Daily Overview',
         url: '/daily-stats',
         icon: CalendarSearch,
-    }
+    },
+    {
+        title: 'Payee Overview',
+        url: '/payee-overview',
+        icon: CalendarSearch,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

@@ -7,7 +7,6 @@ import HeadingSmall from '@/components/heading-small';
 import { CategoryTransactionWidget } from '@/components/widgets/CategoryTransactionWidget';
 import { PayeeCategoryChart } from '@/components/charts/PayeeCategoryChart';
 import { MonthlyCategorySpending } from '@/components/charts/MonthlyCategorySpending';
-import TransactionDrawer from '@/components/transactions-drawer';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -27,12 +26,10 @@ const CategoryOverview = () => {
                             title="Comprehensive Category Overview"
                             description="Explore detailed insights including category transactions, payee information, and more."
                         />
-                        <TransactionDrawer />
                         <CategoryCombobox />
                     </div>
                     <div className="grid auto-rows-min gap-4 md:grid-cols-2">
                         <div className="">
-
                             <CategoryTransactionWidget />
                         </div>
                         <div className="">

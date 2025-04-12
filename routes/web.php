@@ -26,6 +26,7 @@ Route::post('/api/ynab/{budgetId}/fetch-categories', [YNABController::class, 'fe
 Route::post('/api/ynab/{budgetId}/categories/{categoryId}/transactions', [YNABController::class, 'fetchCategoryTransactions']);
 Route::get('/api/ynab/monthly-analytics/{budgetId}/transactions/{month?}', [AnalyticsController::class, 'fetchMonthlyTransactionsChart']);
 Route::post('/api/ynab/{budgetId}/accounts/{accountId}/transactions', [YNABController::class, 'fetchTransactionsByAccount']);
+Route::post('/api/ynab/{budgetId}/payees', [YNABController::class, 'fetchPayees']);
 
 // Route::middleware(['throttle:ynab'])->group(function () {
 //     Route::post('/ynab/auth', [YNABAuthController::class, 'authenticate'])->name('ynab.auth');
@@ -37,6 +38,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/category-overview', fn() => inertia('categoryOverview'))->name('category-overview');
     Route::get('/daily-stats', fn() => inertia('daily-stats'))->name('daily-stats');
     Route::get('/account-transactions', fn() => inertia('accountTransactions'))->name('account-transactions');
+    Route::get('/payee-overview', fn() => inertia('payeeOverview'))->name('payee-overview');
 });
 
 require __DIR__.'/settings.php';

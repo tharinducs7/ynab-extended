@@ -384,31 +384,41 @@ class YNABController extends Controller
             return response()->json(['error' => 'YNAB token is required'], 400);
         }
 
-        $response = Http::withToken($token)
-            ->get("https://api.ynab.com/v1/budgets/{$budgetId}/payees");
+        // Generate a unique cache key using the budget ID and a hash of the token.
+        $cacheKey = "ynab_payees_{$budgetId}_" . md5($token);
 
-        if ($response->failed()) {
-            \Log::error('YNAB API Error - Fetch Payees', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
+        // Cache the result for 1 hour.
+        $result = Cache::remember($cacheKey, now()->addHour(), function () use ($token, $budgetId) {
+            $response = Http::withToken($token)
+                ->get("https://api.ynab.com/v1/budgets/{$budgetId}/payees");
+
+            if ($response->failed()) {
+                \Log::error('YNAB API Error - Fetch Payees', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                return null;
+            }
+
+            $data = $response->json();
+
+            // Optional: transform or filter data as needed.
+            $payees = collect($data['data']['payees'])->map(function ($payee) {
+                return [
+                    'id'      => $payee['id'],
+                    'name'    => $payee['name'],
+                    'deleted' => $payee['deleted'],
+                ];
+            })->values();
+
+            return ['payees' => $payees];
+        });
+
+        if ($result === null) {
             return response()->json(['error' => 'Failed to fetch YNAB payees'], 500);
         }
 
-        $data = $response->json();
-
-        // Optional: transform or filter data as needed
-        $payees = collect($data['data']['payees'])->map(function ($payee) {
-            return [
-                'id' => $payee['id'],
-                'name' => $payee['name'],
-                'deleted' => $payee['deleted'],
-            ];
-        });
-
-        return response()->json([
-            'payees' => $payees,
-        ]);
+        return response()->json($result);
     }
 
     public function fetchTransactionsByAccount(Request $request, $budgetId, $accountId)
