@@ -14,8 +14,8 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Category Overview',
-        url: '/category-overview',
+        title: 'Category Dashboard',
+        url: '/category-dashboard',
         icon: ChartColumnStacked,
     },
     {

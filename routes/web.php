@@ -40,6 +40,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/daily-stats', fn() => inertia('daily-stats'))->name('daily-stats');
     Route::get('/account-transactions', fn() => inertia('accountTransactions'))->name('account-transactions');
     Route::get('/payee-overview', fn() => inertia('payeeOverview'))->name('payee-overview');
+    Route::get('/category-dashboard', fn() => inertia('category-dashboard'))->name('category-dashboard');
 });
 
 require __DIR__.'/settings.php';

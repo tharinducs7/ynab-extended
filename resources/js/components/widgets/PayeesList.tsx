@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { formatPayeeForUrl } from "@/lib/utils";
 import { useYNABContext } from "@/context/YNABContext";
@@ -17,7 +17,7 @@ export function PayeesList() {
     const [loading, setLoading] = useState<boolean>(false);
     const [error, setError] = useState<string | null>(null);
     const [searchTerm, setSearchTerm] = useState<string>("");
-    const { currentBudget, setSelectedPayee } = useYNABContext()
+    const { currentBudget, setSelectedPayee } = useYNABContext();
 
     useEffect(() => {
         if (!currentBudget) return;
@@ -28,13 +28,41 @@ export function PayeesList() {
             return;
         }
 
+        // Build a sessionStorage key unique to this budget
+        const storedDataKey = `payees-${currentBudget.id}`;
+        const cachedData = sessionStorage.getItem(storedDataKey);
+
+        if (cachedData) {
+            // Attempt to parse the cached JSON
+            try {
+                const parsed: Payee[] = JSON.parse(cachedData);
+                setPayees(parsed);
+            } catch (err) {
+                console.error("Failed to parse cached payees:", err);
+                // If parse fails, fall through and fetch
+                fetchPayees(token, storedDataKey);
+            }
+        } else {
+            // If there's no cached data, fetch from the API
+            fetchPayees(token, storedDataKey);
+        }
+    }, [currentBudget]);
+
+    /**
+     * Helper to fetch payees from the API
+     * and store in state + sessionStorage.
+     */
+    const fetchPayees = (token: string, storedDataKey: string) => {
         setLoading(true);
+
         axios
-            .post(`/api/ynab/${currentBudget.id}/payees`, { token })
+            .post(`/api/ynab/${currentBudget!.id}/payees`, { token })
             .then((response) => {
                 const data = response.data;
                 if (data && data.payees) {
                     setPayees(data.payees);
+                    // Also store in sessionStorage
+                    sessionStorage.setItem(storedDataKey, JSON.stringify(data.payees));
                 } else {
                     setError("No payees data received.");
                 }
@@ -44,11 +72,11 @@ export function PayeesList() {
                 setError("Error fetching payees.");
             })
             .finally(() => setLoading(false));
-    }, [currentBudget]);
+    };
 
-    // Compute grouped payees after filtering by the search term
+    // Compute grouped payees after filtering by search term
     const groupedPayees = useMemo(() => {
-        // First, filter payees based on the search term (case-insensitive)
+        // Filter payees based on the search term (case-insensitive)
         const filtered = payees.filter((payee) =>
             payee.name.toLowerCase().includes(searchTerm.toLowerCase())
         );
@@ -61,10 +89,12 @@ export function PayeesList() {
             }
             groups[firstLetter].push(payee);
         });
+
         // Sort each group alphabetically
         for (const letter in groups) {
             groups[letter].sort((a, b) => a.name.localeCompare(b.name));
         }
+
         // Return sorted groups (by key)
         return Object.keys(groups)
             .sort()
@@ -84,9 +114,11 @@ export function PayeesList() {
                 placeholder="Search Payees..."
                 className="mb-4 w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             />
+
             {loading && <p>Loading payees...</p>}
             {error && <p className="text-red-500">{error}</p>}
             {!loading && !error && payees.length === 0 && <p>No payees found.</p>}
+
             <ScrollArea.Root className="relative h-[650px] w-full rounded overflow-hidden">
                 <ScrollArea.Viewport className="w-full h-full p-2">
                     {!loading &&
@@ -104,12 +136,19 @@ export function PayeesList() {
                                             }}
                                         >
                                             <Avatar className="size-8 rounded-lg">
-                                                <AvatarImage src={`https://ik.imagekit.io/apbypokeqx/tr:di-default.png/${formatPayeeForUrl(payee?.name)}.png`} alt={payee.name} />
+                                                <AvatarImage
+                                                    src={`https://ik.imagekit.io/apbypokeqx/tr:di-default.png/${formatPayeeForUrl(
+                                                        payee?.name
+                                                    )}.png`}
+                                                    alt={payee.name}
+                                                />
                                                 <AvatarFallback>
                                                     {payee.name.charAt(0).toUpperCase()}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            <span className="text-md tracking-tight max-w-[180px] truncate">{payee.name}</span>
+                                            <span className="text-md tracking-tight max-w-[180px] truncate">
+                                                {payee.name}
+                                            </span>
                                         </li>
                                     ))}
                                 </ul>

@@ -246,20 +246,34 @@ class YNABController extends Controller
             return response()->json(['error' => 'YNAB token is required'], 400);
         }
 
-        $response = Http::withToken($token)
-            ->get("https://api.ynab.com/v1/budgets/{$budgetId}/categories");
+        // Generate a unique cache key using the budget ID and a hash of the token.
+        $cacheKey = "ynab_categories_{$budgetId}_" . md5($token);
 
-        if ($response->failed()) {
-            \Log::error('YNAB API Error', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
+        // Cache the result for 2 hours (instead of 1 hour).
+        $result = Cache::remember($cacheKey, now()->addHours(2), function () use ($token, $budgetId) {
+            $response = Http::withToken($token)
+                ->get("https://api.ynab.com/v1/budgets/{$budgetId}/categories");
+
+            if ($response->failed()) {
+                \Log::error('YNAB API Error - Fetch Categories', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                return null;
+            }
+
+            $data = $response->json();
+
+            // Optionally transform/filter categories as needed
+            return $data;
+        });
+
+        // If the cache callback returned null, the API call failed
+        if ($result === null) {
             return response()->json(['error' => 'Failed to fetch YNAB categories'], 500);
         }
 
-        $data = $response->json();
-
-        return response()->json($data);
+        return response()->json($result);
     }
 
     public function fetchCategoryTransactions(Request $request, $budgetId, $categoryId)

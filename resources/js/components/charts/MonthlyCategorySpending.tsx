@@ -36,7 +36,7 @@ export function MonthlyCategorySpending() {
   } satisfies ChartConfig
 
   return (
-    <Card className="h-[650px]">
+    <Card className="h-auto">
       <CardHeader>
         <CardTitle>Monthly Spending</CardTitle>
         <CardDescription>
