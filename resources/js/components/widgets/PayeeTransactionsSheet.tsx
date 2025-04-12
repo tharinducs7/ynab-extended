@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import React, { useEffect, useState, useMemo } from "react";
 import axios from "axios";
 import { useYNABContext } from "@/context/YNABContext";
@@ -7,18 +7,18 @@ import TransactionCard from "@/components/ui/transaction-card";
 import { formatBalance } from "@/lib/utils";
 import { ArrowUpCircle, ArrowDownCircle, Repeat } from "lucide-react";
 
-// Extend the Transaction type to include `transfer_transaction_id` if needed
 interface Transaction {
     id: string;
     date: string;
-    amount: number; // We'll store it in standard units (e.g., 123.45)
+    amount: number; // we'll store it in major units
     memo: string | null;
     payee_name: string;
     category_name: string | null;
-    transfer_transaction_id?: string | null; // <-- Add this if your data includes it
+    transfer_transaction_id?: string | null;
+    // If your Laravel code unifies subtransactions under each parent:
+    subtransactions?: Transaction[]; // same structure as parent, or partial
 }
 
-// For category analytics
 interface CategoryBreakdown {
     [categoryName: string]: {
         spent: number;
@@ -37,7 +37,6 @@ interface FetchPayeeTransactionsResponse {
     analytics: PayeeAnalytics;
 }
 
-// Grouped type for monthly transactions
 interface GroupedTransactions {
     [month: string]: Transaction[];
 }
@@ -60,7 +59,6 @@ export function PayeeTransactionsSheet() {
 
         setLoading(true);
 
-        // POST to your endpoint that returns { transactions, analytics }
         axios
             .post(
                 `/api/ynab/${currentBudget.id}/payees/${selectedPayee.id}/transactions`,
@@ -74,12 +72,9 @@ export function PayeeTransactionsSheet() {
             .catch((error) => {
                 console.error("Failed to fetch transactions by payee:", error);
             })
-            .finally(() => {
-                setLoading(false);
-            });
+            .finally(() => setLoading(false));
     }, [currentBudget, selectedPayee]);
 
-    // Format currency (adjust if your budget object is different)
     const currencyIso = currentBudget?.currency ?? "USD";
 
     // ---------------------------
@@ -88,8 +83,7 @@ export function PayeeTransactionsSheet() {
     const groupedTransactions: GroupedTransactions = useMemo(() => {
         const map: GroupedTransactions = {};
         transactions.forEach((txn) => {
-            // Extract "YYYY-MM" from the date
-            const monthKey = txn.date.slice(0, 7);
+            const monthKey = txn.date.slice(0, 7); // "YYYY-MM"
             if (!map[monthKey]) {
                 map[monthKey] = [];
             }
@@ -98,29 +92,22 @@ export function PayeeTransactionsSheet() {
         return map;
     }, [transactions]);
 
-    // Sort month keys descending (latest month first)
+    // Sort month keys descending
     const monthKeys = Object.keys(groupedTransactions).sort((a, b) => b.localeCompare(a));
 
-    // ---------------------------
-    // Compute net for the entire payee
-    // ---------------------------
+    // Compute net
     const net = analytics.totalReceived - analytics.totalSpent;
-
     let netClass = "text-gray-700";
     if (net > 0) {
         netClass = "text-green-700";
     } else if (net < 0) {
         netClass = "text-red-700";
     }
-
-    let netFormatted = "";
-    if (net > 0) {
-        netFormatted = `+${formatBalance(net, currencyIso)}`;
-    } else if (net < 0) {
-        netFormatted = `-${formatBalance(Math.abs(net), currencyIso)}`;
-    } else {
-        netFormatted = "0.00";
-    }
+    const netFormatted = net > 0
+        ? `+${formatBalance(net, currencyIso)}`
+        : net < 0
+            ? `-${formatBalance(Math.abs(net), currencyIso)}`
+            : "0.00";
 
     return (
         <div className="flex w-full h-[750px]">
@@ -133,28 +120,27 @@ export function PayeeTransactionsSheet() {
                         monthKeys.map((month) => {
                             const monthTxns = groupedTransactions[month];
 
-                            // Compute month-level sums:
+                            // Compute month-level sums
                             let income = 0;
                             let expense = 0;
                             let transfers = 0;
 
                             monthTxns.forEach((txn) => {
-                                const amount = txn.amount; // already in major units
+                                const amount = txn.amount;
                                 if (txn.transfer_transaction_id) {
                                     transfers += amount;
                                 } else if (amount > 0) {
                                     income += amount;
                                 } else {
-                                    expense += amount; // negative
+                                    expense += amount;
                                 }
                             });
 
                             return (
                                 <div key={month}>
+                                    {/* Month header */}
                                     <div className="flex justify-between items-center my-4">
-                                        {/* Month on the left */}
                                         <h2 className="text-xl font-bold">{month}</h2>
-                                        {/* Summary on the right */}
                                         <div className="flex items-center justify-end text-sm font-semibold">
                                             <span className="text-green-700 flex items-center mr-2">
                                                 <ArrowUpCircle className="w-4 h-4 mr-1" />
@@ -171,18 +157,52 @@ export function PayeeTransactionsSheet() {
                                         </div>
                                     </div>
 
-                                    {/* Transactions for this month */}
-                                    {monthTxns.map((txn) => (
-                                        <TransactionCard
-                                            key={txn.id}
-                                            transaction={{
-                                                ...txn,
-                                                category_name: txn.category_name ?? "Uncategorized",
-                                                memo: txn.memo ?? "",
-                                                amountDisplay: formatBalance(txn.amount, currencyIso),
-                                            }}
-                                        />
-                                    ))}
+                                    {/* Transactions */}
+                                    {monthTxns.map((txn) => {
+                                        // If the transaction has subtransactions, display them below the parent
+                                        if (txn.subtransactions && txn.subtransactions.length > 0) {
+                                            return (
+                                                <div key={txn.id}>
+                                                    {/* Parent transaction card */}
+                                                    <TransactionCard
+                                                        transaction={{
+                                                            ...txn,
+                                                            // e.g., "Orphaned subtransaction(s)" might be the parent's memo
+                                                            memo: txn.memo ?? "",
+                                                            category_name: txn.category_name ?? "Uncategorized",
+                                                            amountDisplay: formatBalance(txn.amount, currencyIso),
+                                                        }}
+                                                    />
+                                                    {/* Render each subtransaction as well */}
+                                                    {txn.subtransactions.map((sub) => (
+                                                        <div key={sub.id} className="ml-6 border-l border-gray-300 pl-4">
+                                                            <TransactionCard
+                                                                transaction={{
+                                                                    ...sub,
+                                                                    memo: sub.memo ?? "",
+                                                                    category_name: sub.category_name ?? "Uncategorized",
+                                                                    amountDisplay: formatBalance(sub.amount, currencyIso),
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            );
+                                        } else {
+                                            // Normal transaction
+                                            return (
+                                                <TransactionCard
+                                                    key={txn.id}
+                                                    transaction={{
+                                                        ...txn,
+                                                        category_name: txn.category_name ?? "Uncategorized",
+                                                        memo: txn.memo ?? "",
+                                                        amountDisplay: formatBalance(txn.amount, currencyIso),
+                                                    }}
+                                                />
+                                            );
+                                        }
+                                    })}
                                 </div>
                             );
                         })
@@ -198,28 +218,19 @@ export function PayeeTransactionsSheet() {
 
                 {/* Totals row (Spent, Received, Net) */}
                 <div className="mb-4 text-sm font-semibold space-y-2">
-                    {/* Total Received (green) */}
                     <div className="flex items-center text-green-700 justify-between">
-                        {/* <ArrowUpCircle className="w-4 h-4 mr-1" /> */}
                         <span> Income </span>
                         {formatBalance(analytics.totalReceived, currencyIso)}
                     </div>
-
-                    {/* Total Spent (red) */}
                     <div className="flex items-center text-red-700 justify-between">
-                        {/* <ArrowDownCircle className="w-4 h-4 mr-1" /> */}
                         <span> Expenses </span>
                         {formatBalance(analytics.totalSpent, currencyIso)}
                     </div>
-
-                    {/* Net amount (color depends on sign) */}
                     <div className={`flex items-center ${netClass} justify-between`}>
-                        {/* <Repeat className="w-4 h-4 mr-1" /> */}
                         <span> Net Amount </span>
                         {netFormatted}
                     </div>
                 </div>
-
 
                 {/* Category breakdown */}
                 <div>
