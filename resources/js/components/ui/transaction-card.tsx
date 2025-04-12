@@ -33,7 +33,6 @@ const TransactionCard: React.FC<TransactionCardProps> = ({ transaction, minimalC
     const isPaid = transaction.status === 'Paid'
     const classNames = minimalCard ? 'relative my-1 p-2 w-full rounded-lg border text-sm flex items-center justify-between bg-background text-foreground' : 'relative w-full rounded-lg border my-2 px-4 py-3 text-sm flex items-center justify-between bg-background text-foreground';
     const avatarClassName = minimalCard ? 'size-6 rounded-lg' : 'size-6 rounded-lg';
-    console.log(transaction);
 
     return (
         <div

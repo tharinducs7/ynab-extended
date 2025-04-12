@@ -6,6 +6,7 @@ import { formatBalance } from '@/lib/utils';
 import { AgeOfMoneyChart } from '../charts/AgeOfMoneyChart';
 import BalancePieChart from '../charts/BalanceChart';
 import { ScheduledTransactionWidget } from './ScheduledTransactionWidget';
+import { useYNABContext } from '@/context/YNABContext';
 
 // Define TypeScript types for your data
 interface Account {
@@ -66,6 +67,17 @@ const AccountsDisplay: React.FC = () => {
     const budgetsArrayWithAccounts = useYnabStore(
         (state) => state.budgetsArrayWithAccounts
     ) as Budget[];
+
+    const { setSelectedAccount, setIsSheetOpen, setSelectedBudget } = useYNABContext();
+
+    const handleClick = (account: any, budget: any) => {
+      // We store whichever account was clicked
+      setSelectedAccount(account);
+      setSelectedBudget(budget);
+      // Open the Sheet
+      setIsSheetOpen(true);
+    };
+
 
     // Define the desired sort order for budgets.
     const budgetOrder = [
@@ -145,7 +157,7 @@ const AccountsDisplay: React.FC = () => {
                                             </div>
                                             <div className="flex flex-wrap gap-2">
                                                 {accounts.map((account) => (
-                                                    <div className="w-[250px]">
+                                                    <div className="w-[250px] cursor-pointer" onClick={() => handleClick(account, budget)} key={account.id}>
                                                         <BankAccount account={account} budget={budget} />
                                                     </div>
                                                 ))}

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class YNABController extends Controller
 {
@@ -413,28 +414,53 @@ class YNABController extends Controller
     public function fetchTransactionsByAccount(Request $request, $budgetId, $accountId)
     {
         $token = $request->input('token');
-
         if (!$token) {
             return response()->json(['error' => 'YNAB token is required'], 400);
         }
 
-        $response = Http::withToken($token)
-            ->get("https://api.ynab.com/v1/budgets/{$budgetId}/accounts/{$accountId}/transactions");
+        // Generate a unique cache key. We use md5 to safely include the token.
+        $cacheKey = "ynab_transactions_{$budgetId}_{$accountId}_" . md5($token);
 
-        if ($response->failed()) {
-            \Log::error('YNAB API Error - Fetch Transactions by Account', [
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
+        // Cache the result for 5 minutes
+        $result = Cache::remember($cacheKey, now()->addMinutes(5), function () use ($token, $budgetId, $accountId) {
+            $response = Http::withToken($token)
+                ->get("https://api.ynab.com/v1/budgets/{$budgetId}/accounts/{$accountId}/transactions");
+
+            if ($response->failed()) {
+                \Log::error('YNAB API Error - Fetch Transactions by Account', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                // Return null if the API call failed so we can handle it outside of the cache closure.
+                return null;
+            }
+
+            $data = $response->json();
+            $transactions = $data['data']['transactions'] ?? [];
+
+            // Sort transactions by date descending (latest first)
+            usort($transactions, function ($a, $b) {
+                return strtotime($b['date']) - strtotime($a['date']);
+            });
+
+            // Group transactions by month using the "Y-m" format (e.g., "2025-04")
+            $groupedTransactions = [];
+            foreach ($transactions as $transaction) {
+                $monthKey = date('Y-m', strtotime($transaction['date']));
+                $groupedTransactions[$monthKey][] = $transaction;
+            }
+
+            // Sort groups by month key in descending order
+            krsort($groupedTransactions);
+
+            return ['transactions' => $groupedTransactions];
+        });
+
+        // If the cache callback returned null, then the API call failed.
+        if ($result === null) {
             return response()->json(['error' => 'Failed to fetch YNAB transactions for account'], 500);
         }
 
-        $data = $response->json();
-        $transactions = $data['data']['transactions'] ?? [];
-
-        return response()->json([
-            'transactions' => $transactions
-        ]);
+        return response()->json($result);
     }
-
 }

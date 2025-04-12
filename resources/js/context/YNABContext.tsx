@@ -25,6 +25,12 @@ interface YNABContextType {
     setSelectedDate: (date: Date) => void;
     activeTab: "income" | "expense" | "transfers";
     setActiveTab: (tab: "income" | "expense" | "transfers") => void;
+    isSheetOpen: boolean;
+    setIsSheetOpen: React.Dispatch<React.SetStateAction<boolean>>;
+    selectedAccount: any | null;
+    setSelectedAccount: React.Dispatch<React.SetStateAction<any | null>>;
+    selectedBudget: any | null;
+    setSelectedBudget: React.Dispatch<React.SetStateAction<any | null>>;
 }
 
 const YNABContext = createContext<YNABContextType | undefined>(undefined);
@@ -85,6 +91,10 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       }, [budgetsArrayWithAccounts, defaultBudgetId]);
 
+      const [isSheetOpen, setIsSheetOpen] = useState(false);
+      const [selectedAccount, setSelectedAccount] = useState<any | null>(null);
+      const [selectedBudget, setSelectedBudget] = useState<any | null>(null);
+
     return (
         <YNABContext.Provider
             value={{
@@ -102,6 +112,12 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setSelectedDate,
                 activeTab,
                 setActiveTab,
+                isSheetOpen,
+                setIsSheetOpen,
+                selectedAccount,
+                setSelectedAccount,
+                setSelectedBudget,
+                selectedBudget
             }}
         >
             {children}
