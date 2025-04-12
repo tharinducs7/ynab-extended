@@ -3,6 +3,7 @@ import axios from "axios";
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import * as ScrollArea from "@radix-ui/react-scroll-area";
 import { formatPayeeForUrl } from "@/lib/utils";
+import { useYNABContext } from "@/context/YNABContext";
 
 interface Payee {
   id: string;
@@ -11,14 +12,15 @@ interface Payee {
   // Extend this interface with a logo URL if provided by the API.
 }
 
-export function PayeesList({ budgetId }: { budgetId: string }) {
+export function PayeesList() {
   const [payees, setPayees] = useState<Payee[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState<string>("");
+  const { currentBudget } = useYNABContext()
 
   useEffect(() => {
-    if (!budgetId) return;
+    if (!currentBudget) return;
 
     const token = sessionStorage.getItem("ynab_access_token");
     if (!token) {
@@ -28,7 +30,7 @@ export function PayeesList({ budgetId }: { budgetId: string }) {
 
     setLoading(true);
     axios
-      .post(`/api/ynab/${budgetId}/payees`, { token })
+      .post(`/api/ynab/${currentBudget.id}/payees`, { token })
       .then((response) => {
         const data = response.data;
         if (data && data.payees) {
@@ -42,7 +44,7 @@ export function PayeesList({ budgetId }: { budgetId: string }) {
         setError("Error fetching payees.");
       })
       .finally(() => setLoading(false));
-  }, [budgetId]);
+  }, [currentBudget]);
 
   // Compute grouped payees after filtering by the search term
   const groupedPayees = useMemo(() => {
