@@ -144,7 +144,7 @@ export function TransactionsSheet() {
                     />
                 </div>
 
-                <ScrollArea className="h-[760px] px-4">
+                <ScrollArea className="h-[650px] px-4">
                     {loading ? (
                         <p>Loading transactions...</p>
                     ) : Object.keys(filteredTransactions).length ? (
