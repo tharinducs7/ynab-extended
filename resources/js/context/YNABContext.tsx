@@ -70,7 +70,9 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const [selectedCategorySubId, setSelectedCategorySubId] = useState<string | null>(null);
     const [payeeChartData, setPayeeChartData] = useState<any | null>(null);
     const [monthlyChartData, setMonthlyChartData] = useState<any | null>(null);
-    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+    const [selectedDate, setSelectedDate] = useState<string>(
+        new Date().toISOString().split("T")[0]
+    );
 
     const [activeTab, setActiveTab] = useState<"income" | "expense" | "transfers">(() => {
         return (sessionStorage.getItem("activeTab") as "income" | "expense" | "transfers") || "income";

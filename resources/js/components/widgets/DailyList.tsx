@@ -41,7 +41,7 @@ interface DailySummary {
 }
 
 export function DailyList() {
-    const { currentBudget, selectedBudgetMonth, setMonthlyData, setSelectedDate } = useYNABContext();
+    const { currentBudget, selectedBudgetMonth, setMonthlyData, setSelectedDate, selectedDate } = useYNABContext();
     const [dailySummary, setDailySummary] = useState<DailySummary[]>([]);
     const [loading, setLoading] = useState<boolean>(true);
     const [error, setError] = useState<string | null>(null);
@@ -165,10 +165,15 @@ export function DailyList() {
                                                 dateObj.getFullYear() === today.getFullYear() &&
                                                 dateObj.getMonth() === today.getMonth() &&
                                                 dateObj.getDate() === today.getDate();
+                                                console.log(day.date, "day.date");
+
                                             return (
                                                 <TableRow
                                                     key={day.date}
-                                                    className={isWeekend ? "bg-gray-50 cursor-pointer" : "cursor-pointer"}
+                                                    className={`
+                                                        cursor-pointer
+                                                        ${day.date === selectedDate ? "bg-blue-200" : isWeekend ? "bg-gray-50" : ""}
+                                                      `}
                                                     onClick={() => {
                                                         setSelectedDate(day.date);
                                                         window.scrollTo({ top: 0, behavior: "smooth" });
