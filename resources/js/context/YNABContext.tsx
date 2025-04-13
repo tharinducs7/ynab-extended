@@ -21,8 +21,8 @@ interface YNABContextType {
     setPayeeChartData: (data: any) => void;
     monthlyChartData: any;
     setMonthlyChartData: (data: any) => void;
-    selectedDate: Date;
-    setSelectedDate: (date: Date) => void;
+    selectedDate: any;
+    setSelectedDate: (date: any) => void;
     activeTab: "income" | "expense" | "transfers";
     setActiveTab: (tab: "income" | "expense" | "transfers") => void;
     isSheetOpen: boolean;
@@ -33,6 +33,10 @@ interface YNABContextType {
     setSelectedBudget: React.Dispatch<React.SetStateAction<any | null>>;
     selectedPayee: any | null;
     setSelectedPayee: React.Dispatch<React.SetStateAction<any | null>>;
+    selectedBudgetMonth: any | null;
+    setSelectedBudgetMonth: React.Dispatch<React.SetStateAction<any | null>>;
+    selectedMonthlyData: any | null;
+    setMonthlyData: React.Dispatch<React.SetStateAction<any | null>>;
 }
 
 const YNABContext = createContext<YNABContextType | undefined>(undefined);
@@ -70,33 +74,35 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const [activeTab, setActiveTab] = useState<"income" | "expense" | "transfers">(() => {
         return (sessionStorage.getItem("activeTab") as "income" | "expense" | "transfers") || "income";
-      });
+    });
 
-      useEffect(() => {
+    useEffect(() => {
         sessionStorage.setItem("activeTab", activeTab);
-      }, [activeTab]);
+    }, [activeTab]);
 
     useEffect(() => {
         const storedBudget = sessionStorage.getItem("currentBudget");
         if (storedBudget) {
-          setCurrentBudgetState(JSON.parse(storedBudget));
+            setCurrentBudgetState(JSON.parse(storedBudget));
         } else if (defaultBudgetId && budgetsArrayWithAccounts) {
-          const defaultBudget = budgetsArrayWithAccounts.find((b: any) => b.id === defaultBudgetId);
-          if (defaultBudget) {
-            setCurrentBudget({
-              id: defaultBudget.id,
-              name: defaultBudget.name,
-              currency: defaultBudget.currency_format.iso_code,
-              accounts: defaultBudget.accounts,
-            });
-          }
+            const defaultBudget = budgetsArrayWithAccounts.find((b: any) => b.id === defaultBudgetId);
+            if (defaultBudget) {
+                setCurrentBudget({
+                    id: defaultBudget.id,
+                    name: defaultBudget.name,
+                    currency: defaultBudget.currency_format.iso_code,
+                    accounts: defaultBudget.accounts,
+                });
+            }
         }
-      }, [budgetsArrayWithAccounts, defaultBudgetId]);
+    }, [budgetsArrayWithAccounts, defaultBudgetId]);
 
-      const [isSheetOpen, setIsSheetOpen] = useState(false);
-      const [selectedAccount, setSelectedAccount] = useState<any | null>(null);
-      const [selectedBudget, setSelectedBudget] = useState<any | null>(null);
-      const [selectedPayee, setSelectedPayee] = useState<any | null>(null);
+    const [isSheetOpen, setIsSheetOpen] = useState(false);
+    const [selectedAccount, setSelectedAccount] = useState<any | null>(null);
+    const [selectedBudget, setSelectedBudget] = useState<any | null>(null);
+    const [selectedPayee, setSelectedPayee] = useState<any | null>(null);
+    const [selectedBudgetMonth, setSelectedBudgetMonth] = useState<any | null>(null);
+    const [selectedMonthlyData, setMonthlyData] = useState<any | null>(null);
 
     return (
         <YNABContext.Provider
@@ -122,7 +128,11 @@ export const YNABProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 setSelectedBudget,
                 selectedBudget,
                 setSelectedPayee,
-                selectedPayee
+                selectedPayee,
+                setSelectedBudgetMonth,
+                selectedBudgetMonth,
+                selectedMonthlyData,
+                setMonthlyData
             }}
         >
             {children}

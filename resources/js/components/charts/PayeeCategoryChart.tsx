@@ -9,6 +9,7 @@ import {
     Card,
     CardContent,
     CardDescription,
+    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -80,12 +81,11 @@ console.log(payeeChartData, "payeeChartData");
     console.log(activeIndex, "index");
 
     return (
-        <Card data-chart="pie-interactive" className="flex flex-col">
+        <Card data-chart="pie-interactive" className="flex flex-col w-[400px] max-w-[400px] rounded-xl border bg-card shadow-sm">
             <ChartStyle id="pie-interactive" config={dynamicChartConfig as ChartConfig} />
             <CardHeader className="flex-row items-start space-y-0 pb-0">
                 <div className="grid gap-1">
                     <CardTitle className="flex items-center gap-2">
-                        <span>Payee by Category</span>
                         {activeIndex >= 0 && data[activeIndex] && (
                             <Avatar className="size-10 rounded-lg ml-2">
                                 <AvatarImage
@@ -96,7 +96,7 @@ console.log(payeeChartData, "payeeChartData");
                         )}
                     </CardTitle>
 
-                    <CardDescription>Select a payee to highlight activity</CardDescription>
+                    <CardDescription className="text-xs">Payee by Category</CardDescription>
                 </div>
                 <Select value={activePayee} onValueChange={handleSelect}>
                     <SelectTrigger
@@ -194,6 +194,14 @@ console.log(payeeChartData, "payeeChartData");
                     </PieChart>
                 </ChartContainer>
             </CardContent>
+            <CardFooter className="flex-col items-start gap-2 text-sm">
+                <div className="flex gap-2 font-medium leading-none">
+                All Time
+                </div>
+                <div className="leading-none text-muted-foreground">
+                Total spending for the selected 1-year period.
+                </div>
+            </CardFooter>
         </Card>
     )
 }

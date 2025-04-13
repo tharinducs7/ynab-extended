@@ -658,4 +658,42 @@ class YNABController extends Controller
 
         return response()->json($result);
     }
+
+    public function fetchMonths(Request $request, $budgetId)
+    {
+        $token = $request->input('token');
+
+        if (!$token) {
+            return response()->json(['error' => 'YNAB token is required'], 400);
+        }
+
+        // Generate a cache key
+        $cacheKey = "ynab_months_{$budgetId}_" . md5($token);
+
+        // Cache the result for 2 hours
+        $result = Cache::remember($cacheKey, now()->addHours(2), function () use ($token, $budgetId) {
+            $response = Http::withToken($token)
+                ->get("https://api.ynab.com/v1/budgets/{$budgetId}/months");
+
+            if ($response->failed()) {
+                \Log::error('YNAB API Error - Fetch Months', [
+                    'status' => $response->status(),
+                    'body'   => $response->body(),
+                ]);
+                // Return null so we can handle it below
+                return null;
+            }
+
+            // Return the full response JSON (or transform it if you wish)
+            return $response->json();
+        });
+
+        // If the cache callback returned null, the API call failed.
+        if ($result === null) {
+            return response()->json(['error' => 'Failed to fetch YNAB months'], 500);
+        }
+
+        return response()->json($result);
+    }
+
 }

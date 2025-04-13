@@ -21,10 +21,11 @@ Route::get('/ynab-callback', fn() => inertia('YnabCallback'))->name('ynab.callba
 
 Route::post('/ynab/auth', [YNABAuthController::class, 'authenticate'])->name('ynab.auth');
 Route::post('/api/ynab/{budgetId}/age-of-money', [YNABController::class, 'fetchAgeOfMoney']);
+Route::post('/api/ynab/{budgetId}/months', [YNABController::class, 'fetchMonths']);
 Route::post('/api/ynab/{budgetId}/scheduled-transactions', [YNABController::class, 'fetchScheduledTransactions']);
 Route::post('/api/ynab/{budgetId}/fetch-categories', [YNABController::class, 'fetchCategories']);
 Route::post('/api/ynab/{budgetId}/categories/{categoryId}/transactions', [YNABController::class, 'fetchCategoryTransactions']);
-Route::get('/api/ynab/monthly-analytics/{budgetId}/transactions/{month?}', [AnalyticsController::class, 'fetchMonthlyTransactionsChart']);
+Route::post('/api/ynab/monthly-analytics/{budgetId}/transactions/{month?}', [AnalyticsController::class, 'fetchMonthlyTransactionsChart']);
 Route::post('/api/ynab/{budgetId}/accounts/{accountId}/transactions', [YNABController::class, 'fetchTransactionsByAccount']);
 Route::post('/api/ynab/{budgetId}/payees', [YNABController::class, 'fetchPayees']);
 Route::post('/api/ynab/{budgetId}/payees/{payeeId}/transactions', [YNABController::class, 'fetchTransactionsByPayee']);

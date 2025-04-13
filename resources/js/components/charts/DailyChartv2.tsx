@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -39,22 +40,22 @@ interface ChartDataItem {
     expense: number
 }
 
-interface ChartComponentProps {
-    chartData: ChartDataItem[]
-}
 
-export const DailyChartv2: React.FC<ChartComponentProps> = ({ chartData }) => {
-    const { activeTab, setActiveTab } = useYNABContext() as {
+export const DailyChartv2: React.FC = () => {
+    const { activeTab, setActiveTab, selectedMonthlyData } = useYNABContext() as {
         selectedDate: Date;
         currentBudget: any;
         activeTab: keyof typeof chartConfig;
         setActiveTab: (tab: keyof typeof chartConfig) => void;
+        selectedMonthlyData: any;
     }
+
+    const { chart_data: chartData } = selectedMonthlyData || [];
 
     const total = React.useMemo(
         () => ({
-            expense: chartData.reduce((acc, curr) => acc + curr.expense, 0),
-            income: chartData.reduce((acc, curr) => acc + curr.income, 0),
+            expense: chartData?.reduce((acc: any, curr: { expense: any }) => acc + curr.expense, 0),
+            income: chartData?.reduce((acc: any, curr: { income: any }) => acc + curr.income, 0),
         }),
         [chartData]
     )
@@ -70,9 +71,6 @@ export const DailyChartv2: React.FC<ChartComponentProps> = ({ chartData }) => {
             <CardHeader className="flex flex-col items-stretch space-y-0 border-b p-0 sm:flex-row">
                 <div className="flex flex-1 flex-col justify-center gap-1 px-6 py-5 sm:py-6">
                     <CardTitle>Bar Chart - Interactive</CardTitle>
-                    <CardDescription>
-                        Showing total visitors for the last 3 months
-                    </CardDescription>
                 </div>
                 <div className="flex">
                     {["expense", "income"].map((key) => {
@@ -87,8 +85,8 @@ export const DailyChartv2: React.FC<ChartComponentProps> = ({ chartData }) => {
                                 <span className="text-xs text-muted-foreground">
                                     {chartConfig[chart].label}
                                 </span>
-                                <span className="text-lg font-bold leading-none sm:text-3xl">
-                                    {total[key as keyof typeof total].toLocaleString()}
+                                <span className="text-xs font-bold leading-none">
+                                    {total[key as keyof typeof total]?.toLocaleString()}
                                 </span>
                             </button>
                         )
